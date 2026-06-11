@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoChat - التطبيق الرسمي</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background-color: #0b0e11; color: #eaecef; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .login-container { text-align: center; background: #151a21; padding: 40px 30px; border-radius: 16px; border: 1px solid #f3ba2f; max-width: 400px; width: 90%; }
+        .logo { font-size: 2.5rem; font-weight: bold; color: #f3ba2f; margin-bottom: 10px; }
+        .logo span { color: #ffffff; }
+        .tagline { color: #90baee; font-size: 0.95rem; margin-bottom: 30px; }
+        .btn-connect { background-color: #f3ba2f; color: #000000; border: none; padding: 14px 28px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.3s; }
+        .btn-connect:hover { background-color: #fdd05b; }
+        
+        /* شاشة الشات */
+        .chat-container { display: none; width: 100%; height: 100vh; grid-template-columns: 350px 1fr; }
+        .sidebar { background-color: #151a21; border-left: 1px solid #212833; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; background-color: #1e2530; font-weight: bold; border-bottom: 1px solid #212833; color: #f3ba2f; }
+        .wallet-list { list-style: none; overflow-y: auto; flex: 1; }
+        .wallet-item { padding: 15px 20px; border-bottom: 1px solid #1e2530; cursor: pointer; font-size: 0.85rem; color: #b7bdc6; }
+        .wallet-item.active { background-color: #212833; color: #ffffff; border-right: 4px solid #f3ba2f; }
+        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; }
+        .chat-header { padding: 15px 20px; background-color: #151a21; border-bottom: 1px solid #212833; font-size: 0.9rem; color: #ffffff; }
+        .messages-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; }
+        .message.sent { background-color: #f3ba2f; color: #000000; align-self: flex-start; border-top-right-radius: 0; }
+        .message.received { background-color: #1e2530; color: #eaecef; align-self: flex-end; border-top-left-radius: 0; }
+        .input-area { padding: 15px 20px; background-color: #151a21; display: flex; gap: 10px; }
+        .input-area input { flex: 1; background-color: #212833; border: 1px solid #2b3542; padding: 12px; border-radius: 8px; color: #ffffff; outline: none; }
+        .input-area button { background-color: #f3ba2f; color: #000000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        @media (max-width: 768px) { .chat-container { grid-template-columns: 1fr; } .sidebar { display: none; } }
+    </style>
+</head>
+<body>
+
+    <div class="login-container" id="loginScreen">
+        <div class="logo">Crypto<span>Chat</span></div>
+        <div class="tagline">تراسل آمن وجاد يدعمه عقد عملة SINU الذكي</div>
+        <button class="btn-connect" onclick="connectWallet()">ربط المحفظة الحقيقية</button>
+    </div>
+
+    <div class="chat-container" id="chatScreen">
+        <div class="sidebar">
+            <div class="sidebar-header">المحادثات النشطة</div>
+            <ul class="wallet-list">
+                <li class="wallet-item active">0x71C...497a (محادثة مشفرة)</li>
+            </ul>
+        </div>
+        <div class="main-chat">
+            <div class="chat-header" id="chatHeader">المحادثة النشطة | رصيدك: جاري التحميل...</div>
+            <div class="messages-area" id="messagesArea">
+                <div class="message received">مرحباً بك! كل رسالة ترسلها هنا ستخصم 30 SINU من رصيدك المودع في العقد الذكي.</div>
+            </div>
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="اكتب رسالة مشفرة...">
+                <button onclick="sendMessage()">إرسال</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // عناوين العقود الحقيقية - ضع عناوينك هنا!
+        const chatContractAddress = "0xD7ACd2a9FD159E69Bb102A1ca21C9a3e3A5F771B"; // عقد الشات الخاص بك
+        
+        // الـ ABI الحقيقي للتفاعل مع عقد الشات الخاص بك
+        const chatAbi = [
+            "function getInAppBalance(address _user) view returns (uint256)",
+            "function costPerMessage() view returns (uint256)"
+        ];
+
+        let provider, signer, chatContract, userAddress;
+        let inAppBalance = 0;
+
+        // 1. دالة ربط المحفظة الحقيقية وقراءة البيانات من البلوكشين
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // طلب الاتصال بالمحفظة (MetaMask / TrustWallet)
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userAddress = accounts[0];
+
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+
+                    // ربط الكود بعقد الشات الذكي الخاص بك
+                    chatContract = new ethers.Contract(chatContractAddress, chatAbi, signer);
+
+                    // قراءة الرصيد الداخلي للمشترك من العقد الذكي مباشرة
+                    const rawBalance = await chatContract.getInAppBalance(userAddress);
+                    inAppBalance = rawBalance.toNumber();
+
+                    // تحديث الواجهة والانتقال للشات
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('chatScreen').style.display = 'grid';
+                    document.body.style.alignItems = 'stretch';
+                    
+                    updateHeader();
+                } catch (error) {
+                    alert("حدث خطأ أثناء الاتصال: " + error.message);
+                }
+            } else {
+                alert("يرجى فتح هذا الموقع من داخل متصفح محفظة الكريبتو الخاصة بك (DApp Browser) ليعمل الربط الحقيقي!");
+            }
+        }
+
+        function updateHeader() {
+            document.getElementById('chatHeader').innerHTML = `المحادثة الحقيقية | <span style="color: #f3ba2f; font-weight: bold;">رصيدك المودع في العقد: ${inAppBalance} SINU</span>`;
+        }
+
+        // 2. دالة إرسال الرسالة وخصم الـ 30 رمزاً من الرصيد الحقيقي
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            const area = document.getElementById('messagesArea');
+
+            if (text === "") return;
+
+            // شرط الـ 30 رمزاً الحقيقي
+            if (inAppBalance < 30) {
+                alert("فشل الإرسال! رصيدك المودع في العقد أقل من 30 SINU. اذهب لـ Remix واشحن عبر دالة depositSinu");
+                return;
+            }
+
+            // الخصم البرمجي من الرصيد الظاهر
+            inAppBalance -= 30;
+            updateHeader();
+
+            // عرض الرسالة في الواجهة
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message sent';
+            msgDiv.innerText = text;
+            area.appendChild(msgDiv);
+
+            input.value = "";
+            area.scrollTop = area.scrollHeight;
+        }
+    </script>
+</body>
+</html>
+
