@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CryptoChat & Games - التطبيق الرسمي</title>
+    <!-- ethers.js للمحفظة والعقد الذكي -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <!-- مكتبات Firebase للقسم العام السريع والمجاني -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
@@ -18,10 +20,11 @@
         .btn-connect { background-color: #f3ba2f; color: #000000; border: none; padding: 14px 28px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-connect:hover { background-color: #fdd05b; }
         
+        /* تحسين توزيع الشاشة الكلية */
         .chat-container { display: none; width: 100%; height: 100vh; grid-template-columns: 320px 1fr; }
-        .sidebar { background-color: #151a21; border-left: 1px solid #212833; display: flex; flex-direction: column; }
+        .sidebar { background-color: #151a21; border-left: 1px solid #212833; display: flex; flex-direction: column; overflow-y: auto; }
         .sidebar-header { padding: 20px; background-color: #1e2530; font-weight: bold; border-bottom: 1px solid #212833; color: #f3ba2f; text-align: center; }
-        .wallet-list { list-style: none; overflow-y: auto; flex: 1; }
+        .wallet-list { list-style: none; }
         .wallet-item { padding: 15px 20px; border-bottom: 1px solid #1e2530; font-size: 0.85rem; color: #ffffff; text-align: center; font-weight: bold; }
         
         .sidebar-games-box { padding: 12px; background: #1e2530; border-bottom: 1px solid #212833; display: flex; flex-direction: column; gap: 8px; }
@@ -35,42 +38,67 @@
         .sidebar-deposit-box button { background: linear-gradient(135deg, #00ff88 0%, #00bc62 100%); color: black; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
         .sidebar-deposit-box button:hover { transform: scale(1.02); }
 
-        /* ستايل زر الشراء الجديد */
         .btn-buy-sinu { background: linear-gradient(135deg, #ff007a 0%, #7928ca 100%); color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; text-align: center; transition: 0.2s; margin-top: 5px; text-decoration: none; display: block; }
         .btn-buy-sinu:hover { transform: scale(1.02); box-shadow: 0 0 10px rgba(255, 0, 122, 0.5); }
 
-        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; }
+        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; height: 100%; }
         
         .navigation-tabs { display: flex; background: #151a21; border-bottom: 1px solid #212833; }
-        .tab-btn { flex: 1; padding: 18px; background: none; border: none; color: #b7bdc6; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; font-size: 1rem; }
+        .tab-btn { flex: 1; padding: 18px; background: none; border: none; color: #b7bdc6; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; font-size: 0.95rem; }
         .tab-btn.active { color: #f3ba2f; background: #1e2530; border-bottom: 4px solid #f3ba2f; }
 
-        .chat-header { padding: 15px 20px; background-color: #151a21; border-bottom: 1px solid #212833; font-size: 0.95rem; color: #ffffff; line-height: 1.5; }
-        .messages-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .chat-header { padding: 12px 20px; background-color: #151a21; border-bottom: 1px solid #212833; font-size: 0.9rem; color: #ffffff; line-height: 1.5; }
+        .messages-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         
-        .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 5px; line-height: 1.4; position: relative; }
+        .message { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 5px; line-height: 1.4; position: relative; }
         .message.sent { background-color: #f3ba2f; color: #000000; align-self: flex-start; border-top-right-radius: 0; }
         .message.received { background-color: #1e2530; color: #eaecef; align-self: flex-end; border-top-left-radius: 0; }
-        .message img { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 5px; object-fit: cover; }
+        .message img { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 5px; object-fit: cover; }
         .message audio { max-width: 100%; margin-top: 5px; outline: none; }
         
-        .input-area-wrapper { background-color: #151a21; display: flex; flex-direction: column; padding: 15px 20px; gap: 8px; border-top: 1px solid #212833; }
+        .input-area-wrapper { background-color: #151a21; display: flex; flex-direction: column; padding: 12px 15px; gap: 8px; border-top: 1px solid #212833; }
         .recipient-row { display: none; align-items: center; gap: 10px; background: #1e2530; padding: 10px 12px; border-radius: 6px; border: 1px solid #2b3542; }
         .recipient-row label { font-size: 0.85rem; color: #f3ba2f; white-space: nowrap; font-weight: bold; }
         .recipient-row input { flex: 1; background-color: #0b0e11; border: 1px solid #2b3542; padding: 8px 12px; border-radius: 4px; color: #ffffff; font-size: 0.85rem; outline: none; }
         
-        .input-area { display: flex; gap: 10px; width: 100%; align-items: center; }
-        .input-area input { flex: 1; background-color: #212833; border: 1px solid #2b3542; padding: 14px; border-radius: 8px; color: #ffffff; outline: none; font-size: 0.95rem; }
+        .input-area { display: flex; gap: 8px; width: 100%; align-items: center; }
+        .input-area input { flex: 1; background-color: #212833; border: 1px solid #2b3542; padding: 12px; border-radius: 8px; color: #ffffff; outline: none; font-size: 0.95rem; }
         
-        .media-actions { display: flex; gap: 6px; }
-        .btn-media { background-color: #2b3542; color: #ffffff; border: 1px solid #4f5d73; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; position: relative; width: 48px; height: 48px; }
+        .media-actions { display: flex; gap: 5px; }
+        .btn-media { background-color: #2b3542; color: #ffffff; border: 1px solid #4f5d73; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; position: relative; width: 42px; height: 42px; }
         .btn-media input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; top: 0; left: 0; }
         .btn-media.recording { background-color: #ff3333; border-color: #ff0000; animation: pulse 1.5s infinite; }
         
-        .btn-send { background-color: #f3ba2f; color: #000000; border: none; padding: 0 24px; height: 48px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .btn-send { background-color: #f3ba2f; color: #000000; border: none; padding: 0 20px; height: 42px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        @media (max-width: 768px) { .chat-container { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+        /* 📱 التحديث البرمجي الخارق لدعم الموبايل وعدم إخفاء الأزرار */
+        @media (max-width: 768px) {
+            .chat-container { grid-template-columns: 1fr; }
+            .sidebar { 
+                display: flex; 
+                flex-direction: row; 
+                width: 100%; 
+                height: auto; 
+                border-left: none; 
+                border-bottom: 1px solid #212833;
+                overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+                padding: 5px;
+                gap: 8px;
+            }
+            .sidebar-header, .wallet-list { display: none; } /* إخفاء العناصر غير الهامة في الموبايل لتوفير مساحة */
+            .sidebar-games-box { flex-direction: row; padding: 5px; border-bottom: none; align-items: center; }
+            .sidebar-games-box label { display: none; }
+            .sidebar-deposit-box { flex-direction: row; padding: 5px; border-top: none; align-items: center; gap: 5px; }
+            .sidebar-deposit-box label { display: none; }
+            .sidebar-deposit-box input { width: 80px; padding: 8px; font-size: 0.9rem; }
+            .sidebar-deposit-box button { padding: 8px 12px; font-size: 0.85rem; }
+            .btn-buy-sinu { margin-top: 0; padding: 8px 12px; font-size: 0.85rem; }
+            .btn-game { padding: 8px 12px; font-size: 0.85rem; }
+        }
     </style>
 </head>
 <body>
@@ -82,6 +110,7 @@
     </div>
 
     <div class="chat-container" id="chatScreen">
+        <!-- القائمة الجانبية (تعمل كقائمة علوية منزلقة في الموبايل لكي لا تختفي أزرارك) -->
         <div class="sidebar">
             <div class="sidebar-header">المحفظة النشطة</div>
             <ul class="wallet-list">
@@ -90,25 +119,25 @@
             
             <div class="sidebar-games-box">
                 <label>🎮 منصة ألعاب SINU</label>
-                <button class="btn-game" onclick="playGame('luck')">🎰 لعبة الحظ (قريباً)</button>
-                <button class="btn-game" onclick="playGame('prediction')">📈 توقعات السعر</button>
-                <button class="btn-game" onclick="playGame('mafia')">🕵️‍♂️ سينو مافيا</button>
+                <button class="btn-game" onclick="playGame('luck')">🎰 الحظ (قريباً)</button>
+                <button class="btn-game" onclick="playGame('prediction')">📈 التوقعات</button>
+                <button class="btn-game" onclick="playGame('mafia')">🕵️‍♂️ مافيا</button>
             </div>
             
             <div class="sidebar-deposit-box">
-                <label>📥 شحن الرصيد داخل التطبيق</label>
-                <input type="number" id="depositAmount" placeholder="الكمية المراد شحنها" min="1" value="100">
-                <button onclick="handleUIDeposit()">تعبئة الرصيد الآن 🚀</button>
+                <label>📥 شحن الرصيد</label>
+                <input type="number" id="depositAmount" placeholder="الكمية" min="1" value="100">
+                <button onclick="handleUIDeposit()">تعبئة الرصيد 🚀</button>
                 
                 <a href="https://app.uniswap.org/#/swap?outputCurrency=0x56bB247c424958948B63de291A0C7f45d8651B76" target="_blank" class="btn-buy-sinu">
-                    💳 شراء عملة SINU الآن
+                    💳 شراء SINU
                 </a>
             </div>
         </div>
         
         <div class="main-chat">
             <div class="navigation-tabs">
-                <button class="tab-btn active" id="tabGroup" onclick="switchChatMode('group')">المنشورات العامة 🌐 (إمكانية التعديل والمسح)</button>
+                <button class="tab-btn active" id="tabGroup" onclick="switchChatMode('group')">المنشورات العامة 🌐 (تعديل ومسح)</button>
                 <button class="tab-btn" id="tabPrivate" onclick="switchChatMode('private')">المراسلة الخاصة 🔒 (خصم عبر العقد)</button>
             </div>
 
@@ -117,8 +146,8 @@
             
             <div class="input-area-wrapper">
                 <div class="recipient-row" id="recipientRow">
-                    <label for="recipientAddress">عنوان محفظة المستلم:</label>
-                    <input type="text" id="recipientAddress" placeholder="أدخل عنوان المحفظة للطرف الآخر (0x...)">
+                    <label for="recipientAddress">المستلم:</label>
+                    <input type="text" id="recipientAddress" placeholder="أدخل عنوان المحفظة (0x...)">
                 </div>
                 
                 <div class="input-area">
@@ -127,7 +156,7 @@
                             🖼️
                             <input type="file" id="imageUploader" accept="image/*" onchange="handleLocalFileChange(this, 2)">
                         </button>
-                        <button class="btn-media" id="voiceRecordBtn" title="تسجيل صوتي حي" onclick="toggleVoiceRecording()">
+                        <button class="btn-media" id="voiceRecordBtn" title="تسجيل صوتي" onclick="toggleVoiceRecording()">
                             🎙️
                         </button>
                     </div>
@@ -297,10 +326,10 @@
             if (!header) return;
             
             if (isGroupChat) {
-                header.innerHTML = `ساحة المنشورات العامة 🌐 | <span style="color: #00ff88; font-weight: bold;">مجانية تماماً (يمكنك تعديل وحذف منشوراتك)</span> | رصيدك: ${inAppBalance} SINU`;
+                header.innerHTML = `المنشورات العامة 🌐 | <span style="color: #00ff88; font-weight: bold;">تعديل ومسح منشوراتك متاح</span> | رصيدك: ${inAppBalance} SINU`;
             } else {
-                header.innerHTML = `المراسلة الخاصة الآمنة 🔒 | رصيدك في العقد: <span style="color:#00ff88; font-weight:bold;">${inAppBalance} SINU</span><br>
-                <small style="color:#f3ba2f; font-weight: bold;">تكلفة الاستهلاك: نص ${priceText} | صورة ${priceImage} | صوت ${priceVoice} SINU</small>`;
+                header.innerHTML = `المراسلة الخاصة 🔒 | رصيدك: <span style="color:#00ff88; font-weight:bold;">${inAppBalance} SINU</span><br>
+                <small style="color:#f3ba2f; font-weight: bold;">نص ${priceText} | صورة ${priceImage} | صوت ${priceVoice} SINU</small>`;
             }
         }
 
@@ -453,7 +482,7 @@
             titleSpan.innerText = isPublicMsg ? `🌐 منشور عام من: ${shortSender}` : `🔒 رسالة خاصة`;
             headerSpan.appendChild(titleSpan);
 
-            // أزرار التحكم تظهر للمرسل فقط في الساحة العامة
+            // ظهور أزرار التعديل والحذف بشكل صحيح ومضمون لمالك المنشور في العام
             if (isPublicMsg && isSent && messageId && serviceType === 1) {
                 const controlsDiv = document.createElement('div');
                 controlsDiv.style.cssText = "display: flex; gap: 5px;";
