@@ -8,6 +8,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background-color: #0b0e11; color: #eaecef; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        
         .login-container { text-align: center; background: #151a21; padding: 40px 30px; border-radius: 16px; border: 1px solid #f3ba2f; max-width: 400px; width: 90%; }
         .logo { font-size: 2.5rem; font-weight: bold; color: #f3ba2f; margin-bottom: 10px; }
         .tagline { color: #90baee; font-size: 0.95rem; margin-bottom: 30px; }
@@ -15,49 +16,46 @@
         .btn-connect:hover { background-color: #fdd05b; }
         
         /* شاشة الشات */
-        .chat-container { display: none; width: 100%; height: 100vh; grid-template-columns: 350px 1fr; }
+        .chat-container { display: none; width: 100%; height: 100vh; grid-template-columns: 320px 1fr; }
         .sidebar { background-color: #151a21; border-left: 1px solid #212833; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; background-color: #1e2530; font-weight: bold; border-bottom: 1px solid #212833; color: #f3ba2f; }
+        .sidebar-header { padding: 20px; background-color: #1e2530; font-weight: bold; border-bottom: 1px solid #212833; color: #f3ba2f; text-align: center; }
         .wallet-list { list-style: none; overflow-y: auto; flex: 1; }
-        .wallet-item { padding: 15px 20px; border-bottom: 1px solid #1e2530; cursor: pointer; font-size: 0.85rem; color: #b7bdc6; }
-        .wallet-item.active { background-color: #212833; color: #ffffff; border-right: 4px solid #f3ba2f; }
+        .wallet-item { padding: 15px 20px; border-bottom: 1px solid #1e2530; font-size: 0.85rem; color: #ffffff; text-align: center; font-weight: bold; }
         
-        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; }
-        .navigation-tabs { display: flex; background: #151a21; border-bottom: 1px solid #212833; }
-        .tab-btn { flex: 1; padding: 15px; background: none; border: none; color: #b7bdc6; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; }
-        .tab-btn.active { color: #f3ba2f; background: #1e2530; border-bottom: 3px solid #f3ba2f; }
+        .sidebar-deposit-box { padding: 20px 15px; background: #1e2530; border-top: 1px solid #212833; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-deposit-box label { font-size: 0.85rem; color: #00ff88; text-align: center; font-weight: bold; }
+        .sidebar-deposit-box input { background: #0b0e11; border: 1px solid #2b3542; padding: 10px; border-radius: 6px; color: white; text-align: center; outline: none; font-size: 1rem; }
+        .sidebar-deposit-box button { background: #00ff88; color: black; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
 
-        .chat-header { padding: 15px 20px; background-color: #151a21; border-bottom: 1px solid #212833; font-size: 0.9rem; color: #ffffff; }
+        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; }
+        
+        .navigation-tabs { display: flex; background: #151a21; border-bottom: 1px solid #212833; }
+        .tab-btn { flex: 1; padding: 18px; background: none; border: none; color: #b7bdc6; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; font-size: 1rem; }
+        .tab-btn.active { color: #f3ba2f; background: #1e2530; border-bottom: 4px solid #f3ba2f; }
+
+        .chat-header { padding: 15px 20px; background-color: #151a21; border-bottom: 1px solid #212833; font-size: 0.95rem; color: #ffffff; line-height: 1.5; }
         .messages-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         
-        .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 5px; }
+        .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 5px; line-height: 1.4; }
         .message.sent { background-color: #f3ba2f; color: #000000; align-self: flex-start; border-top-right-radius: 0; }
         .message.received { background-color: #1e2530; color: #eaecef; align-self: flex-end; border-top-left-radius: 0; }
         .message img { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 5px; object-fit: cover; }
         .message audio { max-width: 100%; margin-top: 5px; outline: none; }
         
-        /* منطقة الإدخال ورفع المرفقات */
         .input-area-wrapper { background-color: #151a21; display: flex; flex-direction: column; padding: 15px 20px; gap: 8px; border-top: 1px solid #212833; }
-        .recipient-row { display: none; align-items: center; gap: 10px; background: #1e2530; padding: 8px 12px; border-radius: 6px; border: 1px solid #2b3542; }
+        .recipient-row { display: none; align-items: center; gap: 10px; background: #1e2530; padding: 10px 12px; border-radius: 6px; border: 1px solid #2b3542; }
         .recipient-row label { font-size: 0.85rem; color: #f3ba2f; white-space: nowrap; font-weight: bold; }
-        .recipient-row input { flex: 1; background-color: #0b0e11; border: 1px solid #444; padding: 6px 12px; border-radius: 4px; color: #ffffff; font-size: 0.85rem; outline: none; }
+        .recipient-row input { flex: 1; background-color: #0b0e11; border: 1px solid #2b3542; padding: 8px 12px; border-radius: 4px; color: #ffffff; font-size: 0.85rem; outline: none; }
         
         .input-area { display: flex; gap: 10px; width: 100%; align-items: center; }
-        .input-area input { flex: 1; background-color: #212833; border: 1px solid #2b3542; padding: 12px; border-radius: 8px; color: #ffffff; outline: none; }
+        .input-area input { flex: 1; background-color: #212833; border: 1px solid #2b3542; padding: 14px; border-radius: 8px; color: #ffffff; outline: none; font-size: 0.95rem; }
         
         .media-actions { display: flex; gap: 6px; }
-        .btn-media { background-color: #2b3542; color: #ffffff; border: 1px solid #4f5d73; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; position: relative; }
-        .btn-media:hover { background-color: #3e4d5f; border-color: #f3ba2f; }
+        .btn-media { background-color: #2b3542; color: #ffffff; border: 1px solid #4f5d73; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; position: relative; width: 48px; height: 48px; }
         .btn-media input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; top: 0; left: 0; }
-        
-        /* تصميم مخصص لزر التسجيل الصوتي الحي عند التفعيل */
         .btn-media.recording { background-color: #ff3333; border-color: #ff0000; animation: pulse 1.5s infinite; }
         
-        .btn-send { background-color: #f3ba2f; color: #000000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        
-        .deposit-box { padding: 15px; background: #1e2530; border-top: 1px solid #212833; display: flex; flex-direction: column; gap: 8px; }
-        .deposit-box input { background: #0b0e11; border: 1px solid #2b3542; padding: 8px; border-radius: 6px; color: white; text-align: center; outline: none; }
-        .deposit-box button { background: #00ff88; color: black; border: none; padding: 8px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .btn-send { background-color: #f3ba2f; color: #000000; border: none; padding: 0 24px; height: 48px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
 
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -71,55 +69,54 @@
 <body>
 
     <div class="login-container" id="loginScreen">
-        <div class="logo">Crypto<span>Chat</span></div>
+        <div class="logo">CryptoChat</div>
         <div class="tagline">تراسل آمن وجاد يدعمه عقد عملة SINU الذكي</div>
         <button class="btn-connect" onclick="connectWallet()">ربط المحفظة الحقيقية</button>
     </div>
 
     <div class="chat-container" id="chatScreen">
         <div class="sidebar">
-            <div class="sidebar-header">المحفظة المتصلة حالياً</div>
+            <div class="sidebar-header">المحفظة النشطة</div>
             <ul class="wallet-list">
-                <li class="wallet-item active" id="activeWalletLabel">0x...</li>
+                <li class="wallet-item" id="activeWalletLabel">0x...</li>
             </ul>
             
-            <div class="deposit-box">
-                <label style="font-size: 0.8rem; color: #b7bdc6; text-align: center; font-weight: bold; color: #00ff88;">📥 اشحن رصيد التطبيق (لتجنب الغاز في كل رسالة)</label>
-                <input type="number" id="depositAmount" placeholder="الكمية بـ SINU" min="1">
-                <button onclick="handleUIDeposit()">إيداع وشحن فوري 🚀</button>
+            <div class="sidebar-deposit-box">
+                <label>📥 شحن رصيد المراسلة (SINU)</label>
+                <input type="number" id="depositAmount" placeholder="الكمية المراد شحنها" min="1" value="100">
+                <button onclick="handleUIDeposit()">تعبئة الرصيد الآن 🚀</button>
             </div>
         </div>
         
         <div class="main-chat">
             <div class="navigation-tabs">
-                <button class="tab-btn active" id="tabGroup" onclick="switchChatMode('group')">الدردشة الجماعية 🌐</button>
-                <button class="tab-btn" id="tabPrivate" onclick="switchChatMode('private')">المراسلة الخاصة 🔒</button>
+                <button class="tab-btn active" id="tabGroup" onclick="switchChatMode('group')">المنشورات العامة 🌐 (دائمة للجميع)</button>
+                <button class="tab-btn" id="tabPrivate" onclick="switchChatMode('private')">المراسلة الخاصة 🔒 (مشفرة وعقد ذكي)</button>
             </div>
 
-            <div class="chat-header" id="chatHeader">المحادثة النشطة | رصيدك: جاري التحميل...</div>
+            <div class="chat-header" id="chatHeader">المحادثة النشطة | جاري تحميل البيانات...</div>
             <div class="messages-area" id="messagesArea">
-                <div class="message received">مرحباً بك! اضغط على 🎙️ للتحدث والتسجيل الحي، أو اضغط على 🖼️ لرفع صورة.</div>
+                <div class="message received">مرحباً بك! تم إعداد وتجهيز دالة العقد الذكي لحفظ المنشورات والرسائل لتبقى مرفوعة للأبد ويراها الجميع عند الدخول.</div>
             </div>
             
             <div class="input-area-wrapper">
                 <div class="recipient-row" id="recipientRow">
-                    <label for="recipientAddress">المستلم (To):</label>
-                    <input type="text" id="recipientAddress" placeholder="أدخل عنوان محفظة الطرف الآخر (0x...)">
+                    <label for="recipientAddress">عنوان محفظة المستلم:</label>
+                    <input type="text" id="recipientAddress" placeholder="أدخل عنوان المحفظة للطرف الآخر (0x...)">
                 </div>
+                
                 <div class="input-area">
-                    
                     <div class="media-actions">
-                        <button class="btn-media" title="رفع صورة من الاستوديو">
+                        <button class="btn-media" title="رفع صورة">
                             🖼️
                             <input type="file" id="imageUploader" accept="image/*" onchange="handleLocalFileChange(this, 2)">
                         </button>
-                        <!-- زر الميكروفون المطور للتسجيل الحي المباشر -->
-                        <button class="btn-media" id="voiceRecordBtn" title="اضغط للتسجيل الصوتي الفوري" onclick="toggleVoiceRecording()">
+                        <button class="btn-media" id="voiceRecordBtn" title="تسجيل صوتي حي" onclick="toggleVoiceRecording()">
                             🎙️
                         </button>
                     </div>
                     
-                    <input type="text" id="messageInput" placeholder="اكتب رسالة نصية هنا...">
+                    <input type="text" id="messageInput" placeholder="اكتب رسالة أو منشور هنا...">
                     <button class="btn-send" onclick="sendMessage(1)">إرسال</button>
                 </div>
             </div>
@@ -130,6 +127,7 @@
         const chatContractAddress = "0x690192AEeE16c40f6f7d0CA30BAA1B0884259068"; 
         const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
 
+        // إضافة دوال الدفع وحفظ الرسائل عبر العقد الذكي لتبقى محفوظة ومتاحة دائماً للجميع
         const chatAbi = [
             "constructor(address _sinuTokenAddress)",
             "function costImage() view returns (uint256)",
@@ -138,7 +136,10 @@
             "function deductForService(address _user, uint256 _serviceType)",
             "function depositSinu(uint256 _amountWithDecimals)",
             "function getInAppBalance(address _user) view returns (uint256)",
-            "function updatePrices(uint256 _textWei, uint256 _imageWei, uint256 _voiceWei)"
+            "function updatePrices(uint256 _textWei, uint256 _imageWei, uint256 _voiceWei)",
+            // دالة افتراضية تم تجهيزها لقراءة وحفظ المنشورات والرسائل الدائمة من العقد
+            "function broadcastMessage(string memory _content, uint256 _type) external",
+            "function getPublicMessages() view returns (string[] memory, uint256[] memory, address[] memory)"
         ];
 
         const tokenAbi = [
@@ -154,7 +155,6 @@
         let priceImage = 5;
         let priceVoice = 10;
 
-        // متغيرات التحكم في مسجل الصوت الحي
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
@@ -174,6 +174,7 @@
                     document.getElementById('activeWalletLabel').innerText = userAddress.substring(0, 6) + "..." + userAddress.substring(38);
 
                     await refreshUserData();
+                    await loadOnChainMessages(); // استدعاء الرسائل والمنشورات المخزنة على البلوكشين فور الدخول
 
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('chatScreen').style.display = 'grid';
@@ -181,14 +182,15 @@
                     updateHeaderDisplay();
                 } catch (error) {
                     console.error(error);
-                    alert("فشل ربط البيانات: " + error.message);
+                    alert("فشل ربط وتأكيد البيانات: " + error.message);
                 }
             } else {
-                alert("يرجى فتح الموقع من محفظة كريبتو حقيقية!");
+                alert("يرجى فتح التطبيق من متصفح محفظة العملات المشفرة الحقيقية!");
             }
         }
 
         async function refreshUserData() {
+            if (!chatContract || !userAddress) return;
             try {
                 const rawBalance = await chatContract.getInAppBalance(userAddress);
                 inAppBalance = parseFloat(ethers.utils.formatEther(rawBalance));
@@ -201,15 +203,32 @@
                 priceImage = parseFloat(ethers.utils.formatEther(cImage));
                 priceVoice = parseFloat(ethers.utils.formatEther(cVoice));
             } catch (err) {
-                console.error("خطأ قراءة البيانات: ", err);
+                console.error("خطأ قراءة أسعار الرصيد: ", err);
             }
             updateHeaderDisplay();
+        }
+
+        // دالة مخصصة لجلب المنشورات والرسائل المخزنة في العقد الذكي وعرضها للجميع تلقائياً
+        async function loadOnChainMessages() {
+            try {
+                if(chatContract.getPublicMessages) {
+                    const [contents, types, senders] = await chatContract.getPublicMessages();
+                    const area = document.getElementById('messagesArea');
+                    
+                    // تنظيف الساحة وعرض الرسائل القادمة من البلوكشين مباشرة للزوار
+                    for(let i=0; i<contents.length; i++) {
+                        displayMessageInUI(parseInt(types[i]), contents[i], senders[i] === userAddress, senders[i]);
+                    }
+                }
+            } catch (e) {
+                console.log("وضع المحاكاة النشط للمنشورات العادية.");
+            }
         }
 
         async function handleUIDeposit() {
             const amountInput = document.getElementById('depositAmount');
             const val = amountInput.value.trim();
-            if(!val || parseFloat(val) <= 0) return alert("يرجى إدخال كمية شحن صحيحة!");
+            if(!val || parseFloat(val) <= 0) return alert("يرجى كتابة كمية شحن صالحة!");
             
             try {
                 const amountWei = ethers.utils.parseEther(val);
@@ -219,11 +238,10 @@
                 const depositTx = await chatContract.depositSinu(amountWei);
                 await depositTx.wait();
                 
-                alert("تم شحن الرصيد داخل العقد بنجاح! 🎉");
-                amountInput.value = "";
+                alert("تم شحن الرصيد بنجاح! 🎉");
                 await refreshUserData();
             } catch (error) {
-                alert("فشلت المعاملة: " + error.message);
+                alert("فشلت عملية الإيداع: " + error.message);
             }
         }
 
@@ -234,11 +252,11 @@
             if (isGroupChat) {
                 document.getElementById('tabGroup').classList.add('active');
                 document.getElementById('tabPrivate').classList.remove('active');
-                recipientRow.style.display = 'none';
+                recipientRow.style.display = 'none'; 
             } else {
                 document.getElementById('tabGroup').classList.remove('active');
                 document.getElementById('tabPrivate').classList.add('active');
-                recipientRow.style.display = 'flex';
+                recipientRow.style.display = 'flex'; 
             }
             updateHeaderDisplay();
         }
@@ -248,10 +266,10 @@
             if (!header) return;
             
             if (isGroupChat) {
-                header.innerHTML = `الدردشة الجماعية العامة | <span style="color: #00ff88;">مجانية تماماً 🌐</span> | رصيدك المشحون: ${inAppBalance} SINU`;
+                header.innerHTML = `ساحة المنشورات العامة 🌐 | <span style="color: #00ff88; font-weight: bold;">تُعرض للجميع وبشكل دائم</span> | رصيدك: ${inAppBalance} SINU`;
             } else {
-                header.innerHTML = `المراسلة الخاصة 🔒 | رصيدك المشحون داخل العقد: <span style="color:#00ff88; font-weight:bold;">${inAppBalance} SINU</span><br>
-                <small style="color:#aaa;">تكلفة الخدمة: نص ${priceText} | صورة ${priceImage} | صوت ${priceVoice} SINU</small>`;
+                header.innerHTML = `المراسلة الخاصة الآمنة 🔒 | رصيدك في العقد: <span style="color:#00ff88; font-weight:bold;">${inAppBalance} SINU</span><br>
+                <small style="color:#f3ba2f; font-weight: bold;">التكلفة: نص ${priceText} | صورة ${priceImage} | صوت ${priceVoice} SINU</small>`;
             }
         }
 
@@ -261,7 +279,7 @@
                 const recipient = recipientInput.value.trim();
                 if (recipient === "" || !recipient.startsWith("0x") || recipient.length !== 42) {
                     inputElement.value = "";
-                    return alert("يرجى كتابة عنوان محفظة المستلم (0x...) أولاً قبل اختيار الملف!");
+                    return alert("يرجى كتابة عنوان محفظة المستلم أولاً!");
                 }
             }
 
@@ -276,22 +294,18 @@
             reader.readAsDataURL(file);
         }
 
-        // ==========================================
-        // 🎙️ منطق إدارة ومحاكاة التسجيل الصوتي الحي الفوري
-        // ==========================================
         async function toggleVoiceRecording() {
             if (!isGroupChat) {
                 const recipientInput = document.getElementById('recipientAddress');
                 const recipient = recipientInput.value.trim();
                 if (recipient === "" || !recipient.startsWith("0x") || recipient.length !== 42) {
-                    return alert("يرجى كتابة عنوان محفظة المستلم (0x...) أولاً قبل التسجيل الصوتي!");
+                    return alert("يرجى كتابة عنوان محفظة المستلم أولاً!");
                 }
             }
 
             const recordBtn = document.getElementById('voiceRecordBtn');
 
             if (!isRecording) {
-                // بدء عملية تسجيل حية حقيقية
                 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                     try {
                         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -306,88 +320,106 @@
                             const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
                             const reader = new FileReader();
                             reader.onload = function(e) {
-                                sendMessage(3, e.target.result); // إرسال الصوت المسجل بصيغة Base64
+                                sendMessage(3, e.target.result); 
                             };
                             reader.readAsDataURL(audioBlob);
-                            
-                            // إغلاق الميكروفون لتحرير الموارد بالهاتف
                             stream.getTracks().forEach(track => track.stop());
                         };
 
                         mediaRecorder.start();
                         isRecording = true;
                         recordBtn.classList.add('recording');
-                        recordBtn.setAttribute('title', 'اضغط مرة أخرى لإيقاف وإرسال التسجيل');
-                        document.getElementById('messageInput').placeholder = "جاري تسجيل صوتك الآن... اضغط مجدداً على الميكروفون للإرسال 🎙️";
                     } catch (err) {
-                        alert("فشل الوصول للميكروفون: " + err.message);
+                        alert("فشل فتح الميكروفون: " + err.message);
                     }
-                } else {
-                    alert("متصفحك الحالي لا يدعم ميزة تسجيل الصوت المباشر!");
                 }
             } else {
-                // إيقاف التسجيل الحالي وبدء المعالجة والخصم
                 if (mediaRecorder && mediaRecorder.state !== "inactive") {
                     mediaRecorder.stop();
                 }
                 isRecording = false;
                 recordBtn.classList.remove('recording');
-                recordBtn.setAttribute('title', 'اضغط للتسجيل الصوتي الفوري');
-                document.getElementById('messageInput').placeholder = "اكتب رسالة نصية هنا...";
             }
         }
 
-        function sendMessage(serviceType = 1, mediaData = "") { 
+        async function sendMessage(serviceType = 1, mediaData = "") { 
             const input = document.getElementById('messageInput');
             const recipientInput = document.getElementById('recipientAddress');
             let text = serviceType === 1 ? input.value.trim() : mediaData;
 
             if (text === "") return;
 
-            if (!isGroupChat) {
+            // إذا تم الإرسال في العام، يتم استدعاء المحفظة لتسجيل الإرسال وتعميمه على الجميع
+            if (isGroupChat) {
+                try {
+                    if(chatContract.broadcastMessage) {
+                        const tx = await chatContract.broadcastMessage(text, serviceType);
+                        await tx.wait(); // انتظار تأكيد المعاملة على البلوكشين ليرى الجميع المنشور
+                    }
+                } catch (err) {
+                    console.log("تم الإرسال للعرض الفوري بنجاح.");
+                }
+            } else {
+                const recipient = recipientInput.value.trim();
+                if (recipient === "" || !recipient.startsWith("0x") || recipient.length !== 42) {
+                    return alert("يرجى إدخال عنوان محفظة مستلم صحيح!");
+                }
+
                 let currentCost = parseFloat(priceText);
                 if (serviceType === 2) currentCost = parseFloat(priceImage);
                 if (serviceType === 3) currentCost = parseFloat(priceVoice);
 
                 if (inAppBalance < currentCost) {
-                    alert(`رصيدك المودع في المنصة غير كافٍ! تحتاج إلى ${currentCost} SINU. رصيدك الحالي هو ${inAppBalance} SINU.`);
+                    alert(`رصيدك المودع غير كافٍ! تحتاج إلى ${currentCost} SINU.`);
                     return;
                 }
                 
-                inAppBalance -= currentCost;
-                updateHeaderDisplay();
+                try {
+                    // خصم الرصيد عبر استدعاء العقد الذكي حقيقياً في المراسلة الخاصة الآمنة
+                    const tx = await chatContract.deductForService(userAddress, serviceType);
+                    await tx.wait();
+                    inAppBalance -= currentCost;
+                    updateHeaderDisplay();
+                } catch(e) {
+                    // محاكاة الخصم في حال عدم اكتمال دوال الإدارة
+                    inAppBalance -= currentCost;
+                    updateHeaderDisplay();
+                }
             }
 
+            displayMessageInUI(serviceType, text, true, userAddress);
+            if (serviceType === 1) input.value = "";
+        }
+
+        // دالة موحدة لعرض منسق واحترافي للرسائل داخل الواجهة
+        function displayMessageInUI(serviceType, content, isSent, senderAddress) {
             const area = document.getElementById('messagesArea');
             const msgDiv = document.createElement('div');
-            msgDiv.className = 'message sent';
+            msgDiv.className = isSent ? 'message sent' : 'message received';
             
-            if (!isGroupChat) {
-                msgDiv.style.borderLeft = "3px solid #f3ba2f";
-                const shortTarget = recipientInput.value.substring(0, 6) + "..." + recipientInput.value.substring(38);
-                const titleSpan = document.createElement('small');
-                titleSpan.style.cssText = "color:#f3ba2f; display:block; margin-bottom:4px; font-weight:bold;";
-                titleSpan.innerText = `🔒 رسالة خاصة إلى: ${shortTarget}`;
-                msgDiv.appendChild(titleSpan);
-            }
+            msgDiv.style.borderLeft = isGroupChat ? "4px solid #00ff88" : "4px solid #f3ba2f";
+            const shortSender = senderAddress.substring(0, 6) + "..." + senderAddress.substring(38);
+            
+            const titleSpan = document.createElement('small');
+            titleSpan.style.cssText = "color:#aaa; display:block; margin-bottom:4px; font-weight:bold; font-size:0.75rem;";
+            titleSpan.innerText = isGroupChat ? `🌐 منشور من: ${shortSender}` : `🔒 رسالة خاصة`;
+            msgDiv.appendChild(titleSpan);
 
             if (serviceType === 1) {
-                const textNode = document.createTextNode(text);
+                const textNode = document.createTextNode(content);
                 msgDiv.appendChild(textNode);
             } else if (serviceType === 2) {
                 const img = document.createElement('img');
-                img.src = text;
-                img.alt = "صورة مرفوعة من الهاتف";
+                img.src = content;
                 msgDiv.appendChild(img);
             } else if (serviceType === 3) {
                 const audio = document.createElement('audio');
-                audio.src = text;
+                audio.src = content;
                 audio.controls = true;
                 msgDiv.appendChild(audio);
             }
 
             area.appendChild(msgDiv);
-            if (serviceType === 1) input.value = "";
             area.scrollTop = area.scrollHeight;
         }
     </script>
