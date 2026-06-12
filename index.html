@@ -3,160 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CryptoChat & Games - التطبيق الرسمي</title>
+    <title>CryptoChat - التطبيق الرسمي</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background-color: #0b0e11; color: #eaecef; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        
-        /* شاشة تسجيل الدخول */
         .login-container { text-align: center; background: #151a21; padding: 40px 30px; border-radius: 16px; border: 1px solid #f3ba2f; max-width: 400px; width: 90%; }
         .logo { font-size: 2.5rem; font-weight: bold; color: #f3ba2f; margin-bottom: 10px; }
+        .logo span { color: #ffffff; }
         .tagline { color: #90baee; font-size: 0.95rem; margin-bottom: 30px; }
         .btn-connect { background-color: #f3ba2f; color: #000000; border: none; padding: 14px 28px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-connect:hover { background-color: #fdd05b; }
         
-        /* الحاوية الرئيسية للتطبيق */
+        /* شاشة الشات */
         .chat-container { display: none; width: 100%; height: 100vh; grid-template-columns: 350px 1fr; }
-        
-        /* القائمة الجانبية */
         .sidebar { background-color: #151a21; border-left: 1px solid #212833; display: flex; flex-direction: column; }
         .sidebar-header { padding: 20px; background-color: #1e2530; font-weight: bold; border-bottom: 1px solid #212833; color: #f3ba2f; }
         .wallet-list { list-style: none; overflow-y: auto; flex: 1; }
         .wallet-item { padding: 15px 20px; border-bottom: 1px solid #1e2530; cursor: pointer; font-size: 0.85rem; color: #b7bdc6; }
         .wallet-item.active { background-color: #212833; color: #ffffff; border-right: 4px solid #f3ba2f; }
         
-        /* روابط الدعم السريع */
-        .quick-links-box { padding: 15px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #212833; background: #1a202c; }
-        .btn-link-uniswap { background-color: #ff007a; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; text-align: center; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
-        
-        /* صندوق شحن الرصيد */
-        .deposit-box { padding: 15px; background: #1e2530; border-top: 1px solid #212833; display: flex; flex-direction: column; gap: 8px; }
-        .deposit-box input { background: #0b0e11; border: 1px solid #2b3542; padding: 8px; border-radius: 6px; color: white; text-align: center; }
-        .deposit-box button { background: #00ff88; color: black; border: none; padding: 8px; font-weight: bold; border-radius: 6px; cursor: pointer; }
-
-        /* منطقة العمل الرئيسية */
-        .main-content { display: flex; flex-direction: column; background-color: #0b0e11; height: 100%; }
-        
-        /* شريط التبويب العلوي */
+        /* أزرار التحكم في الأقسام */
         .navigation-tabs { display: flex; background: #151a21; border-bottom: 1px solid #212833; }
         .tab-btn { flex: 1; padding: 15px; background: none; border: none; color: #b7bdc6; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; }
         .tab-btn.active { color: #f3ba2f; background: #1e2530; border-bottom: 3px solid #f3ba2f; }
+
+        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; }
+        .chat-header { padding: 15px 20px; background-color: #151a21; border-bottom: 1px solid #212833; font-size: 0.9rem; color: #ffffff; }
+        .messages-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         
-        .chat-header { padding: 12px 20px; background-color: #1a202c; font-size: 0.9rem; color: #ffffff; text-align: center; border-bottom: 1px solid #212833; }
-        
-        /* مساحات العرض */
-        .view-section { flex: 1; display: none; overflow-y: auto; padding: 20px; }
-        .view-section.active { display: flex; flex-direction: column; }
-        
-        /* الشات */
-        .messages-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; }
+        /* تصميم الرسائل وفقاعات العرض المتطورة للوسائط */
+        .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 5px; }
         .message.sent { background-color: #f3ba2f; color: #000000; align-self: flex-start; border-top-right-radius: 0; }
         .message.received { background-color: #1e2530; color: #eaecef; align-self: flex-end; border-top-left-radius: 0; }
+        .message img { max-width: 100%; border-radius: 8px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .message audio { max-width: 100%; margin-top: 5px; outline: none; }
         
-        /* منطقة الإدخال */
-        .input-area-wrapper { background-color: #151a21; border-top: 1px solid #212833; display: flex; flex-direction: column; padding: 12px 20px; gap: 8px; }
+        /* منطقة الإدخال المطورة مع خيارات الوسائط المتعددة (صور وأصوات) */
+        .input-area-wrapper { background-color: #151a21; display: flex; flex-direction: column; padding: 15px 20px; gap: 8px; border-top: 1px solid #212833; }
         .recipient-row { display: none; align-items: center; gap: 10px; background: #1e2530; padding: 8px 12px; border-radius: 6px; border: 1px solid #2b3542; }
         .recipient-row label { font-size: 0.85rem; color: #f3ba2f; white-space: nowrap; font-weight: bold; }
         .recipient-row input { flex: 1; background-color: #0b0e11; border: 1px solid #444; padding: 6px 12px; border-radius: 4px; color: #ffffff; font-size: 0.85rem; outline: none; }
         
-        .input-area { display: flex; gap: 10px; align-items: center; }
+        .input-area { display: flex; gap: 10px; width: 100%; align-items: center; }
         .input-area input { flex: 1; background-color: #212833; border: 1px solid #2b3542; padding: 12px; border-radius: 8px; color: #ffffff; outline: none; }
-        .input-area button { background-color: #f3ba2f; color: #000000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
-        /* ساحة الألعاب PvP والخارجية */
-        .games-arena { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 10px; }
-        .game-card { background: #151a21; border: 1px solid #2b3542; border-radius: 12px; padding: 20px; text-align: center; position: relative; }
-        .game-badge { position: absolute; top: 10px; left: 10px; background: #90baee; color: black; font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
-        .game-icon { font-size: 3rem; margin-bottom: 10px; }
-        .game-title { font-size: 1.2rem; font-weight: bold; color: #ffffff; margin-bottom: 8px; }
-        .game-desc { font-size: 0.85rem; color: #b7bdc6; margin-bottom: 15px; }
-        .btn-play { background: #f3ba2f; color: black; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; text-decoration: none; display: inline-block; }
+        /* أزرار المرفقات المتطورة */
+        .media-actions { display: flex; gap: 6px; }
+        .btn-media { background-color: #2b3542; color: #ffffff; border: 1px solid #4f5d73; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-media:hover { background-color: #3e4d5f; border-color: #f3ba2f; }
+        .btn-send { background-color: #f3ba2f; color: #000000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        /* صندوق الشحن السريع بالواجهة */
+        .deposit-box { padding: 15px; background: #1e2530; border-top: 1px solid #212833; display: flex; flex-direction: column; gap: 8px; }
+        .deposit-box input { background: #0b0e11; border: 1px solid #2b3542; padding: 8px; border-radius: 6px; color: white; text-align: center; outline: none; }
+        .deposit-box button { background: #00ff88; color: black; border: none; padding: 8px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+
+        @media (max-width: 768px) { .chat-container { grid-template-columns: 1fr; } .sidebar { display: none; } }
     </style>
 </head>
 <body>
 
     <div class="login-container" id="loginScreen">
         <div class="logo">Crypto<span>Chat</span></div>
-        <div class="tagline">تراسل آمن وجاد وألعاب PvP يدعمها عقد عملة SINU الذكي</div>
+        <div class="tagline">تراسل آمن وجاد يدعمه عقد عملة SINU الذكي</div>
         <button class="btn-connect" onclick="connectWallet()">ربط المحفظة الحقيقية</button>
     </div>
 
     <div class="chat-container" id="chatScreen">
-        
         <div class="sidebar">
             <div class="sidebar-header">المحفظة المتصلة حالياً</div>
             <ul class="wallet-list">
                 <li class="wallet-item active" id="activeWalletLabel">0x...</li>
             </ul>
             
-            <div class="quick-links-box">
-                <a href="https://app.uniswap.org/#/swap?outputCurrency=0x56bB247c424958948B63de291A0C7f45d8651B76&chain=base" target="_blank" class="btn-link-uniswap" style="color: white; text-align: center; text-decoration: none;">🦄 شراء SINU عبر Uniswap</a>
-            </div>
-            
             <div class="deposit-box">
-                <label style="font-size: 0.8rem; color: #b7bdc6; text-align: center; font-weight: bold; color: #00ff88;">📥 اشحن رصيد التطبيق لمرة واحدة (لتجنب الغاز في كل رسالة)</label>
+                <label style="font-size: 0.8rem; color: #b7bdc6; text-align: center; font-weight: bold; color: #00ff88;">📥 اشحن رصيد التطبيق (لتجنب الغاز في كل رسالة)</label>
                 <input type="number" id="depositAmount" placeholder="الكمية بـ SINU" min="1">
-                <button onclick="handleDepositClick()">إيداع وشحن فوري 🚀</button>
+                <button onclick="handleUIDeposit()">إيداع وشحن فوري 🚀</button>
             </div>
         </div>
-
-        <div class="main-content">
-            
+        
+        <div class="main-chat">
             <div class="navigation-tabs">
-                <button class="tab-btn active" id="tabGroup" onclick="switchMainView('group')">الدردشة العامة 🌐</button>
-                <button class="tab-btn" id="tabPrivate" onclick="switchMainView('private')">المراسلة الخاصة 🔒</button>
-                <button class="tab-btn" id="tabGames" onclick="switchMainView('games')"> ساحة الألعاب والـ PvP ⚔️</button>
+                <button class="tab-btn active" id="tabGroup" onclick="switchChatMode('group')">الدردشة الجماعية 🌐</button>
+                <button class="tab-btn" id="tabPrivate" onclick="switchChatMode('private')">المراسلة الخاصة 🔒</button>
             </div>
 
-            <div class="chat-header" id="chatHeader">جاري جلب البيانات...</div>
-
-            <div id="chatSectionContainer" class="view-section active">
-                <div class="messages-area" id="messagesArea"></div>
-                
-                <div class="input-area-wrapper">
-                    <div class="recipient-row" id="recipientRow">
-                        <label for="recipientAddress">المستلم (To):</label>
-                        <input type="text" id="recipientAddress" placeholder="أدخل عنوان محفظة المستقبل هنا (0x...)">
+            <div class="chat-header" id="chatHeader">المحادثة النشطة | رصيدك: جاري التحميل...</div>
+            <div class="messages-area" id="messagesArea">
+                <div class="message received">مرحباً بك! يمكنك الآن إرسال النصوص 💬، الصور 🖼️، والمقاطع الصوتية 🎙️ بكل سهولة.</div>
+            </div>
+            
+            <div class="input-area-wrapper">
+                <div class="recipient-row" id="recipientRow">
+                    <label for="recipientAddress">المستلم (To):</label>
+                    <input type="text" id="recipientAddress" placeholder="أدخل عنوان محفظة الطرف الآخر (0x...)">
+                </div>
+                <div class="input-area">
+                    <div class="media-actions">
+                        <button class="btn-media" title="إرسال صورة" onclick="sendMediaPrompt(2)">🖼️</button>
+                        <button class="btn-media" title="إرسال رسالة صوتية" onclick="sendMediaPrompt(3)">🎙️</button>
                     </div>
-                    <div class="input-area">
-                        <input type="text" id="messageInput" placeholder="اكتب شيئاً هنا...">
-                        <button onclick="handleSendClick()">إرسال</button>
-                    </div>
+                    <input type="text" id="messageInput" placeholder="اكتب رسالة نصية هنا...">
+                    <button class="btn-send" onclick="sendMessage(1)">إرسال</button>
                 </div>
             </div>
-
-            <div id="gamesSectionContainer" class="view-section">
-                <div class="games-arena">
-                    <div class="game-card">
-                        <div class="game-badge" style="background: #00ff88;">لايف أونلاين 🌐</div>
-                        <div class="game-icon">🧠</div>
-                        <div class="game-title">SINU Syndicate</div>
-                        <div class="game-desc">تطبيق واختبار معلومات الـ Web3 الشهير الخاص بنا. العب واختبر معلوماتك الآن!</div>
-                        <a href="https://your-sinu-syndicate-link.vercel.app" target="_blank" class="btn-play" style="background: #00ff88;">العب الآن (رابط خارجي) 🚀</a>
-                    </div>
-                    <div class="game-card">
-                        <div class="game-badge" style="background: #00ff88;">لايف أونلاين 🌐</div>
-                        <div class="game-icon">🕵️‍♂️</div>
-                        <div class="game-title">Sinu Mafia</div>
-                        <div class="game-desc">لعبة المافيا التنافسية الممتعة المعتمدة بالكامل على مجتمع وبيئة SINU.</div>
-                        <a href="https://your-sinu-mafia-link.vercel.app" target="_blank" class="btn-play" style="background: #00ff88;">العب الآن (رابط خارجي) 🚀</a>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 
     <script>
         const chatContractAddress = "0x690192AEeE16c40f6f7d0CA30BAA1B0884259068"; 
-        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76";     
+        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
 
         const chatAbi = [
+            "constructor(address _sinuTokenAddress)",
+            "function costImage() view returns (uint256)",
             "function costText() view returns (uint256)",
+            "function costVoice() view returns (uint256)",
+            "function deductForService(address _user, uint256 _serviceType)",
             "function depositSinu(uint256 _amountWithDecimals)",
-            "function getInAppBalance(address _user) view returns (uint256)"
+            "function getInAppBalance(address _user) view returns (uint256)",
+            "function updatePrices(uint256 _textWei, uint256 _imageWei, uint256 _voiceWei)"
         ];
 
         const tokenAbi = [
@@ -165,13 +133,12 @@
         ];
 
         let provider, signer, chatContract, tokenContract, userAddress;
-        let inAppBalance = 0; // الرصيد المودع داخل التطبيق
-        let currentMode = 'group'; 
-        let priceText = 300;
+        let inAppBalance = 0;
+        let isGroupChat = true; 
 
-        let globalMessagesDb = [
-            { type: 'group', sender: 'system', recipient: '', text: 'مرحباً بك في المنصة! الدردشة العامة مجانية بالكامل وبدون غاز.' }
-        ];
+        let priceText = 3; 
+        let priceImage = 5;
+        let priceVoice = 10;
 
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
@@ -192,157 +159,157 @@
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('chatScreen').style.display = 'grid';
                     
-                    renderMessages();
                     updateHeaderDisplay();
                 } catch (error) {
-                    alert("فشل ربط المحفظة: " + error.message);
+                    console.error(error);
+                    alert("فشل جلب البيانات من العقد الذكي: " + error.message);
                 }
             } else {
-                alert("يرجى فتح التطبيق من متصفح محفظة الـ Web3 الخاصة بك!");
+                alert("يرجى فتح الموقع من متصفح محفظة الكريبتو الحقيقية!");
             }
         }
 
-        // تحسين قراءة الرصيد المشحون داخل العقد وتجنب مشاكل الكسور
         async function refreshUserData() {
             try {
                 const rawBalance = await chatContract.getInAppBalance(userAddress);
-                // تحويل القيمة من وحدة Wei للعرض الصحيح
                 inAppBalance = parseFloat(ethers.utils.formatEther(rawBalance));
 
                 const cText = await chatContract.costText();
+                const cImage = await chatContract.costImage();
+                const cVoice = await chatContract.costVoice();
+                
                 priceText = parseFloat(ethers.utils.formatEther(cText));
+                priceImage = parseFloat(ethers.utils.formatEther(cImage));
+                priceVoice = parseFloat(ethers.utils.formatEther(cVoice));
             } catch (err) {
-                console.error("خطأ قراءة العقد، تفعيل الوضع التجريبي الذكي:", err);
-                // قيمة افتراضية مرنة للمحاكاة والتجربة السلسة بدون حظر الواجهة
-                inAppBalance = 0; 
+                console.error("خطأ في تحديث البيانات الفعلي: ", err);
             }
             updateHeaderDisplay();
         }
 
-        function switchMainView(view) {
-            currentMode = view;
-            document.getElementById('tabGroup').classList.remove('active');
-            document.getElementById('tabPrivate').classList.remove('active');
-            document.getElementById('tabGames').classList.remove('active');
+        async function handleUIDeposit() {
+            const amountInput = document.getElementById('depositAmount');
+            const val = amountInput.value.trim();
+            if(!val || parseFloat(val) <= 0) return alert("يرجى إدخال كمية شحن صحيحة!");
             
-            document.getElementById('chatSectionContainer').classList.remove('active');
-            document.getElementById('gamesSectionContainer').classList.remove('active');
-
-            const recipientRow = document.getElementById('recipientRow');
-
-            if (view === 'group' || view === 'private') {
-                document.getElementById(view === 'group' ? 'tabGroup' : 'tabPrivate').classList.add('active');
-                document.getElementById('chatSectionContainer').classList.add('active');
-                recipientRow.style.display = (view === 'private') ? 'flex' : 'none';
-                renderMessages();
-            } else if (view === 'games') {
-                document.getElementById('tabGames').classList.add('active');
-                document.getElementById('gamesSectionContainer').classList.add('active');
-                recipientRow.style.display = 'none';
+            try {
+                const amountWei = ethers.utils.parseEther(val);
+                const approveTx = await tokenContract.approve(chatContractAddress, amountWei);
+                await approveTx.wait();
+                
+                const depositTx = await chatContract.depositSinu(amountWei);
+                await depositTx.wait();
+                
+                alert("تم الشحن والإيداع بنجاح! 🎉");
+                amountInput.value = "";
+                await refreshUserData();
+            } catch (error) {
+                alert("فشلت المعاملة: " + error.message);
             }
-            updateHeaderDisplay();
         }
 
-        function renderMessages() {
-            const area = document.getElementById('messagesArea');
-            area.innerHTML = "";
-
-            globalMessagesDb.forEach(msg => {
-                if (currentMode === 'group' && msg.type === 'group') {
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = (msg.sender.toLowerCase() === userAddress.toLowerCase()) ? 'message sent' : 'message received';
-                    msgDiv.innerText = msg.text;
-                    area.appendChild(msgDiv);
-                } 
-                else if (currentMode === 'private' && msg.type === 'private') {
-                    const isSender = msg.sender.toLowerCase() === userAddress.toLowerCase();
-                    const isRecipient = msg.recipient.toLowerCase() === userAddress.toLowerCase();
-
-                    if (isSender || isRecipient) {
-                        const msgDiv = document.createElement('div');
-                        msgDiv.className = isSender ? 'message sent' : 'message received';
-                        msgDiv.style.borderLeft = isSender ? "3px solid #f3ba2f" : "3px solid #00ff88";
-                        const displayTitle = isSender ? `إلى: ${msg.recipient.substring(0,6)}...` : `من: ${msg.sender.substring(0,6)}...`;
-                        msgDiv.innerHTML = `<small style="color:#888; display:block; margin-bottom:4px; font-weight:bold;">🔒 ${displayTitle}</small> ${msg.text}`;
-                        area.appendChild(msgDiv);
-                    }
-                }
-            });
-            area.scrollTop = area.scrollHeight;
+        function switchChatMode(mode) {
+            isGroupChat = (mode === 'group');
+            const recipientRow = document.getElementById('recipientRow');
+            
+            if (isGroupChat) {
+                document.getElementById('tabGroup').classList.add('active');
+                document.getElementById('tabPrivate').classList.remove('active');
+                recipientRow.style.display = 'none';
+            } else {
+                document.getElementById('tabGroup').classList.remove('active');
+                document.getElementById('tabPrivate').classList.add('active');
+                recipientRow.style.display = 'flex';
+            }
+            updateHeaderDisplay();
         }
 
         function updateHeaderDisplay() {
             const header = document.getElementById('chatHeader');
             if (!header) return;
             
-            if (currentMode === 'group') {
-                header.innerHTML = `الدردشة العامة 🌐 | <span style="color:#00ff88;">مفتوحة ومجانية بدون غاز نهائياً</span>`;
-            } else if (currentMode === 'private') {
-                header.innerHTML = `المراسلة الخاصة 🔒 | التكلفة: ${priceText} SINU (تخصم من رصيد التطبيق المودع وليس المحفظة مباشراً) | رصيدك المشحون داخل العقد: <span style="color:#f3ba2f; font-weight:bold;">${inAppBalance} SINU</span>`;
-            } else if (currentMode === 'games') {
-                header.innerHTML = `ساحة معارك الألعاب والـ PvP ⚔️`;
+            if (isGroupChat) {
+                header.innerHTML = `الدردشة الجماعية العامة | <span style="color: #00ff88;">مجانية تماماً 🌐</span> | رصيدك المشحون: ${inAppBalance} SINU`;
+            } else {
+                header.innerHTML = `المراسلة الخاصة 🔒 | رصيدك المشحون داخل العقد: <span style="color:#00ff88; font-weight:bold;">${inAppBalance} SINU</span><br>
+                <small style="color:#aaa;">تكلفة الخدمة الحالية: نص ${priceText} | صورة ${priceImage} | صوت ${priceVoice} SINU</small>`;
             }
         }
 
-        // دفع غاز مرة واحدة لشحن الرصيد المسبق للتطبيق
-        async function handleDepositClick() {
-            const amountInput = document.getElementById('depositAmount');
-            const val = parseFloat(amountInput.value);
-            if (!val || val <= 0) return alert("يرجى إدخال كمية SINU صحيحة للشحن!");
-            
-            try {
-                const amountWei = ethers.utils.parseEther(val.toString());
-                
-                // 1. الموافقة للعقد على سحب الكمية (تتطلب غاز)
-                const approveTx = await tokenContract.approve(chatContractAddress, amountWei);
-                await approveTx.wait();
-                
-                // 2. الإيداع الفعلي في العقد (تتطلب غاز لآخر مرة)
-                const depositTx = await chatContract.depositSinu(amountWei);
-                await depositTx.wait();
-                
-                alert("تم شحن رصيد التطبيق بنجاح! الآن يمكنك مراسلة أي محفظة خاصاً بدون نوافذ ميتاماسك وبدون غاز 🎉");
-                amountInput.value = "";
-                await refreshUserData();
-            } catch (error) {
-                alert("فشلت معاملة الشحن: " + error.message);
+        // نافذة منبثقة مخصصة لطلب رابط الصورة أو المقطع الصوتي من المستخدم
+        function sendMediaPrompt(serviceType) {
+            if (!isGroupChat) {
+                const recipientInput = document.getElementById('recipientAddress');
+                const recipient = recipientInput.value.trim();
+                if (recipient === "" || !recipient.startsWith("0x") || recipient.length !== 42) {
+                    return alert("يرجى كتابة عنوان محفظة المستلم (0x...) بشكل صحيح أولاً قبل إرسال الوسائط!");
+                }
+            }
+
+            if (serviceType === 2) {
+                const url = prompt("يرجى إدخال رابط الصورة المباشر (URL):");
+                if (url) sendMessage(2, url);
+            } else if (serviceType === 3) {
+                const url = prompt("يرجى إدخال رابط الملف الصوتي المباشر (mp3, wav):");
+                if (url) sendMessage(3, url);
             }
         }
 
-        function handleSendClick() {
+        function sendMessage(serviceType = 1, mediaUrl = "") { 
             const input = document.getElementById('messageInput');
-            const text = input.value.trim();
             const recipientInput = document.getElementById('recipientAddress');
+            let text = serviceType === 1 ? input.value.trim() : mediaUrl;
 
             if (text === "") return;
 
-            let targetRecipient = "";
+            if (!isGroupChat) {
+                let currentCost = parseFloat(priceText);
+                if (serviceType === 2) currentCost = parseFloat(priceImage);
+                if (serviceType === 3) currentCost = parseFloat(priceVoice);
 
-            if (currentMode === 'private') {
-                targetRecipient = recipientInput.value.trim();
-                if (targetRecipient === "" || !targetRecipient.startsWith("0x") || targetRecipient.length !== 42) {
-                    return alert("يرجى إدخال عنوان محفظة المستلم بشكل صحيح (0x...)!");
-                }
-
-                // الفحص والتأكد من وجود رصيد مشحون مسبقاً بالتطبيق
-                if (inAppBalance < priceText) {
-                    return alert(`رصيدك المودع في التطبيق هو ${inAppBalance} SINU وهو غير كافٍ. يرجى شحن الرصيد من القائمة الجانبية (إيداع فوري بالعقد) لمرة واحدة لتتمكن من الإرسال الفوري بدون غاز!`);
+                // الفحص والتحقق من الرصيد المتوفر للخدمة المطلوبة
+                if (inAppBalance < currentCost) {
+                    alert(`رصيدك المودع في المنصة غير كافٍ! تحتاج إلى ${currentCost} SINU لإرسال هذه الوسائط. رصيدك الحالي هو ${inAppBalance} SINU.`);
+                    return;
                 }
                 
-                // خصم محلي فوري سريع بدون فتح محفظة ميتاماسك!
-                inAppBalance -= priceText;
+                inAppBalance -= currentCost;
                 updateHeaderDisplay();
             }
 
-            globalMessagesDb.push({
-                type: currentMode,
-                sender: userAddress,
-                recipient: targetRecipient,
-                text: text
-            });
+            const area = document.getElementById('messagesArea');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message sent';
+            
+            // إدارة تنسيق الترويسة للرسائل الخاصة الموجهة لمحفظة معينة
+            if (!isGroupChat) {
+                msgDiv.style.borderLeft = "3px solid #f3ba2f";
+                const shortTarget = recipientInput.value.substring(0, 6) + "..." + recipientInput.value.substring(38);
+                const titleSpan = document.createElement('small');
+                titleSpan.style.cssText = "color:#f3ba2f; display:block; margin-bottom:4px; font-weight:bold;";
+                titleSpan.innerText = `🔒 رسالة خاصة إلى: ${shortTarget}`;
+                msgDiv.appendChild(titleSpan);
+            }
 
-            input.value = "";
-            renderMessages();
+            // بناء المحتوى ديناميكياً حسب نوع الخدمة (نص، صورة، صوت)
+            if (serviceType === 1) {
+                const textNode = document.createTextNode(text);
+                msgDiv.appendChild(textNode);
+            } else if (serviceType === 2) {
+                const img = document.createElement('img');
+                img.src = text;
+                img.alt = "صورة مرسلة";
+                msgDiv.appendChild(img);
+            } else if (serviceType === 3) {
+                const audio = document.createElement('audio');
+                audio.src = text;
+                audio.controls = true;
+                msgDiv.appendChild(audio);
+            }
+
+            area.appendChild(msgDiv);
+            if (serviceType === 1) input.value = "";
+            area.scrollTop = area.scrollHeight;
         }
     </script>
 </body>
