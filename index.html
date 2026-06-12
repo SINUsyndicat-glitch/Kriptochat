@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CryptoChat - التطبيق الرسمي</title>
+    <title>CryptoChat & Games - التطبيق الرسمي</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background-color: #0b0e11; color: #eaecef; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
@@ -15,17 +18,26 @@
         .btn-connect { background-color: #f3ba2f; color: #000000; border: none; padding: 14px 28px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-connect:hover { background-color: #fdd05b; }
         
-        /* شاشة الشات */
         .chat-container { display: none; width: 100%; height: 100vh; grid-template-columns: 320px 1fr; }
         .sidebar { background-color: #151a21; border-left: 1px solid #212833; display: flex; flex-direction: column; }
         .sidebar-header { padding: 20px; background-color: #1e2530; font-weight: bold; border-bottom: 1px solid #212833; color: #f3ba2f; text-align: center; }
         .wallet-list { list-style: none; overflow-y: auto; flex: 1; }
         .wallet-item { padding: 15px 20px; border-bottom: 1px solid #1e2530; font-size: 0.85rem; color: #ffffff; text-align: center; font-weight: bold; }
         
-        .sidebar-deposit-box { padding: 20px 15px; background: #1e2530; border-top: 1px solid #212833; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-games-box { padding: 12px; background: #1e2530; border-bottom: 1px solid #212833; display: flex; flex-direction: column; gap: 8px; }
+        .sidebar-games-box label { font-size: 0.85rem; color: #f3ba2f; text-align: center; font-weight: bold; margin-bottom: 2px; }
+        .btn-game { background-color: #212833; color: #ffffff; border: 1px solid #4f5d73; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: bold; transition: 0.2s; text-align: center; }
+        .btn-game:hover { background-color: #2b3542; border-color: #f3ba2f; color: #f3ba2f; }
+
+        .sidebar-deposit-box { padding: 15px; background: #1e2530; border-top: 1px solid #212833; display: flex; flex-direction: column; gap: 10px; }
         .sidebar-deposit-box label { font-size: 0.85rem; color: #00ff88; text-align: center; font-weight: bold; }
         .sidebar-deposit-box input { background: #0b0e11; border: 1px solid #2b3542; padding: 10px; border-radius: 6px; color: white; text-align: center; outline: none; font-size: 1rem; }
-        .sidebar-deposit-box button { background: #00ff88; color: black; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
+        .sidebar-deposit-box button { background: linear-gradient(135deg, #00ff88 0%, #00bc62 100%); color: black; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
+        .sidebar-deposit-box button:hover { transform: scale(1.02); }
+
+        /* ستايل زر الشراء الجديد */
+        .btn-buy-sinu { background: linear-gradient(135deg, #ff007a 0%, #7928ca 100%); color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; text-align: center; transition: 0.2s; margin-top: 5px; text-decoration: none; display: block; }
+        .btn-buy-sinu:hover { transform: scale(1.02); box-shadow: 0 0 10px rgba(255, 0, 122, 0.5); }
 
         .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; }
         
@@ -36,7 +48,7 @@
         .chat-header { padding: 15px 20px; background-color: #151a21; border-bottom: 1px solid #212833; font-size: 0.95rem; color: #ffffff; line-height: 1.5; }
         .messages-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         
-        .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 5px; line-height: 1.4; }
+        .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 5px; line-height: 1.4; position: relative; }
         .message.sent { background-color: #f3ba2f; color: #000000; align-self: flex-start; border-top-right-radius: 0; }
         .message.received { background-color: #1e2530; color: #eaecef; align-self: flex-end; border-top-left-radius: 0; }
         .message img { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 5px; object-fit: cover; }
@@ -57,12 +69,7 @@
         
         .btn-send { background-color: #f3ba2f; color: #000000; border: none; padding: 0 24px; height: 48px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         @media (max-width: 768px) { .chat-container { grid-template-columns: 1fr; } .sidebar { display: none; } }
     </style>
 </head>
@@ -70,7 +77,7 @@
 
     <div class="login-container" id="loginScreen">
         <div class="logo">CryptoChat</div>
-        <div class="tagline">تراسل آمن وجاد يدعمه عقد عملة SINU الذكي</div>
+        <div class="tagline">تراسل يدعمه عقد عملة SINU وقاعدة بيانات تتيح تعديل وحذف منشوراتك العامة</div>
         <button class="btn-connect" onclick="connectWallet()">ربط المحفظة الحقيقية</button>
     </div>
 
@@ -81,23 +88,32 @@
                 <li class="wallet-item" id="activeWalletLabel">0x...</li>
             </ul>
             
+            <div class="sidebar-games-box">
+                <label>🎮 منصة ألعاب SINU</label>
+                <button class="btn-game" onclick="playGame('luck')">🎰 لعبة الحظ (قريباً)</button>
+                <button class="btn-game" onclick="playGame('prediction')">📈 توقعات السعر</button>
+                <button class="btn-game" onclick="playGame('mafia')">🕵️‍♂️ سينو مافيا</button>
+            </div>
+            
             <div class="sidebar-deposit-box">
-                <label>📥 شحن رصيد المراسلة (SINU)</label>
+                <label>📥 شحن الرصيد داخل التطبيق</label>
                 <input type="number" id="depositAmount" placeholder="الكمية المراد شحنها" min="1" value="100">
                 <button onclick="handleUIDeposit()">تعبئة الرصيد الآن 🚀</button>
+                
+                <a href="https://app.uniswap.org/#/swap?outputCurrency=0x56bB247c424958948B63de291A0C7f45d8651B76" target="_blank" class="btn-buy-sinu">
+                    💳 شراء عملة SINU الآن
+                </a>
             </div>
         </div>
         
         <div class="main-chat">
             <div class="navigation-tabs">
-                <button class="tab-btn active" id="tabGroup" onclick="switchChatMode('group')">المنشورات العامة 🌐 (دائمة للجميع)</button>
-                <button class="tab-btn" id="tabPrivate" onclick="switchChatMode('private')">المراسلة الخاصة 🔒 (مشفرة وعقد ذكي)</button>
+                <button class="tab-btn active" id="tabGroup" onclick="switchChatMode('group')">المنشورات العامة 🌐 (إمكانية التعديل والمسح)</button>
+                <button class="tab-btn" id="tabPrivate" onclick="switchChatMode('private')">المراسلة الخاصة 🔒 (خصم عبر العقد)</button>
             </div>
 
             <div class="chat-header" id="chatHeader">المحادثة النشطة | جاري تحميل البيانات...</div>
-            <div class="messages-area" id="messagesArea">
-                <div class="message received">مرحباً بك! تم إعداد وتجهيز دالة العقد الذكي لحفظ المنشورات والرسائل لتبقى مرفوعة للأبد ويراها الجميع عند الدخول.</div>
-            </div>
+            <div class="messages-area" id="messagesArea"></div>
             
             <div class="input-area-wrapper">
                 <div class="recipient-row" id="recipientRow">
@@ -124,10 +140,22 @@
     </div>
 
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjANzHrD-JEEN_4DVIY705ECcJTvl4lQk",
+            authDomain: "kriptochat-bf77a.firebaseapp.com",
+            databaseURL: "https://kriptochat-bf77a-default-rtdb.firebaseio.com", 
+            projectId: "kriptochat-bf77a",
+            storageBucket: "kriptochat-bf77a.firebasestorage.app",
+            messagingSenderId: "438561797154",
+            appId: "1:438561797154:web:26e5b2eda081e0eac2467b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const chatContractAddress = "0x690192AEeE16c40f6f7d0CA30BAA1B0884259068"; 
         const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
 
-        // إضافة دوال الدفع وحفظ الرسائل عبر العقد الذكي لتبقى محفوظة ومتاحة دائماً للجميع
         const chatAbi = [
             "constructor(address _sinuTokenAddress)",
             "function costImage() view returns (uint256)",
@@ -136,10 +164,7 @@
             "function deductForService(address _user, uint256 _serviceType)",
             "function depositSinu(uint256 _amountWithDecimals)",
             "function getInAppBalance(address _user) view returns (uint256)",
-            "function updatePrices(uint256 _textWei, uint256 _imageWei, uint256 _voiceWei)",
-            // دالة افتراضية تم تجهيزها لقراءة وحفظ المنشورات والرسائل الدائمة من العقد
-            "function broadcastMessage(string memory _content, uint256 _type) external",
-            "function getPublicMessages() view returns (string[] memory, uint256[] memory, address[] memory)"
+            "function updatePrices(uint256 _textWei, uint256 _imageWei, uint256 _voiceWei)"
         ];
 
         const tokenAbi = [
@@ -151,9 +176,9 @@
         let inAppBalance = 0;
         let isGroupChat = true; 
 
-        let priceText = 3; 
-        let priceImage = 5;
-        let priceVoice = 10;
+        let priceText = 300; 
+        let priceImage = 500;
+        let priceVoice = 1000;
 
         let mediaRecorder;
         let audioChunks = [];
@@ -174,7 +199,7 @@
                     document.getElementById('activeWalletLabel').innerText = userAddress.substring(0, 6) + "..." + userAddress.substring(38);
 
                     await refreshUserData();
-                    await loadOnChainMessages(); // استدعاء الرسائل والمنشورات المخزنة على البلوكشين فور الدخول
+                    listenToPublicMessages();
 
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('chatScreen').style.display = 'grid';
@@ -182,10 +207,10 @@
                     updateHeaderDisplay();
                 } catch (error) {
                     console.error(error);
-                    alert("فشل ربط وتأكيد البيانات: " + error.message);
+                    alert("فشل ربط البيانات: " + error.message);
                 }
             } else {
-                alert("يرجى فتح التطبيق من متصفح محفظة العملات المشفرة الحقيقية!");
+                alert("يرجى فتح التطبيق من متصفح محفظة العملات المعتمدة!");
             }
         }
 
@@ -193,7 +218,7 @@
             if (!chatContract || !userAddress) return;
             try {
                 const rawBalance = await chatContract.getInAppBalance(userAddress);
-                inAppBalance = parseFloat(ethers.utils.formatEther(rawBalance));
+                inAppBalance = parseInt(rawBalance.toString());
 
                 const cText = await chatContract.costText();
                 const cImage = await chatContract.costImage();
@@ -208,21 +233,23 @@
             updateHeaderDisplay();
         }
 
-        // دالة مخصصة لجلب المنشورات والرسائل المخزنة في العقد الذكي وعرضها للجميع تلقائياً
-        async function loadOnChainMessages() {
-            try {
-                if(chatContract.getPublicMessages) {
-                    const [contents, types, senders] = await chatContract.getPublicMessages();
-                    const area = document.getElementById('messagesArea');
-                    
-                    // تنظيف الساحة وعرض الرسائل القادمة من البلوكشين مباشرة للزوار
-                    for(let i=0; i<contents.length; i++) {
-                        displayMessageInUI(parseInt(types[i]), contents[i], senders[i] === userAddress, senders[i]);
-                    }
-                }
-            } catch (e) {
-                console.log("وضع المحاكاة النشط للمنشورات العادية.");
-            }
+        function listenToPublicMessages() {
+            document.getElementById('messagesArea').innerHTML = ""; 
+            db.ref("public_messages").off();
+            
+            db.ref("public_messages").on("child_added", (snapshot) => {
+                const data = snapshot.val();
+                displayMessageInUI(data.type, data.content, data.sender.toLowerCase() === userAddress.toLowerCase(), data.sender, true, snapshot.key);
+            });
+
+            db.ref("public_messages").on("child_changed", (snapshot) => {
+                const data = snapshot.val();
+                displayMessageInUI(data.type, data.content, data.sender.toLowerCase() === userAddress.toLowerCase(), data.sender, true, snapshot.key);
+            });
+
+            db.ref("public_messages").on("child_removed", (snapshot) => {
+                displayMessageInUI(null, null, false, "", true, snapshot.key);
+            });
         }
 
         async function handleUIDeposit() {
@@ -248,15 +275,19 @@
         function switchChatMode(mode) {
             isGroupChat = (mode === 'group');
             const recipientRow = document.getElementById('recipientRow');
+            document.getElementById('messagesArea').innerHTML = ""; 
             
             if (isGroupChat) {
                 document.getElementById('tabGroup').classList.add('active');
                 document.getElementById('tabPrivate').classList.remove('active');
                 recipientRow.style.display = 'none'; 
+                listenToPublicMessages(); 
             } else {
                 document.getElementById('tabGroup').classList.remove('active');
                 document.getElementById('tabPrivate').classList.add('active');
                 recipientRow.style.display = 'flex'; 
+                db.ref("public_messages").off(); 
+                displayMessageInUI(1, "أنت الآن في قسم الرسائل الخاصة الآمنة، سيتم الخصم من رصيدك في العقد تلقائياً عند الإرسال.", false, "نظام الحماية", false);
             }
             updateHeaderDisplay();
         }
@@ -266,10 +297,10 @@
             if (!header) return;
             
             if (isGroupChat) {
-                header.innerHTML = `ساحة المنشورات العامة 🌐 | <span style="color: #00ff88; font-weight: bold;">تُعرض للجميع وبشكل دائم</span> | رصيدك: ${inAppBalance} SINU`;
+                header.innerHTML = `ساحة المنشورات العامة 🌐 | <span style="color: #00ff88; font-weight: bold;">مجانية تماماً (يمكنك تعديل وحذف منشوراتك)</span> | رصيدك: ${inAppBalance} SINU`;
             } else {
                 header.innerHTML = `المراسلة الخاصة الآمنة 🔒 | رصيدك في العقد: <span style="color:#00ff88; font-weight:bold;">${inAppBalance} SINU</span><br>
-                <small style="color:#f3ba2f; font-weight: bold;">التكلفة: نص ${priceText} | صورة ${priceImage} | صوت ${priceVoice} SINU</small>`;
+                <small style="color:#f3ba2f; font-weight: bold;">تكلفة الاستهلاك: نص ${priceText} | صورة ${priceImage} | صوت ${priceVoice} SINU</small>`;
             }
         }
 
@@ -349,16 +380,14 @@
 
             if (text === "") return;
 
-            // إذا تم الإرسال في العام، يتم استدعاء المحفظة لتسجيل الإرسال وتعميمه على الجميع
             if (isGroupChat) {
-                try {
-                    if(chatContract.broadcastMessage) {
-                        const tx = await chatContract.broadcastMessage(text, serviceType);
-                        await tx.wait(); // انتظار تأكيد المعاملة على البلوكشين ليرى الجميع المنشور
-                    }
-                } catch (err) {
-                    console.log("تم الإرسال للعرض الفوري بنجاح.");
-                }
+                db.ref("public_messages").push({
+                    sender: userAddress,
+                    content: text,
+                    type: serviceType,
+                    timestamp: Date.now()
+                });
+                if (serviceType === 1) input.value = "";
             } else {
                 const recipient = recipientInput.value.trim();
                 if (recipient === "" || !recipient.startsWith("0x") || recipient.length !== 42) {
@@ -370,44 +399,94 @@
                 if (serviceType === 3) currentCost = parseFloat(priceVoice);
 
                 if (inAppBalance < currentCost) {
-                    alert(`رصيدك المودع غير كافٍ! تحتاج إلى ${currentCost} SINU.`);
+                    alert(`رصيدك غير كافٍ! تحتاج إلى ${currentCost} SINU.`);
                     return;
                 }
                 
                 try {
-                    // خصم الرصيد عبر استدعاء العقد الذكي حقيقياً في المراسلة الخاصة الآمنة
                     const tx = await chatContract.deductForService(userAddress, serviceType);
                     await tx.wait();
                     inAppBalance -= currentCost;
                     updateHeaderDisplay();
+                    
+                    displayMessageInUI(serviceType, text, true, userAddress, false);
+                    if (serviceType === 1) input.value = "";
                 } catch(e) {
-                    // محاكاة الخصم في حال عدم اكتمال دوال الإدارة
-                    inAppBalance -= currentCost;
-                    updateHeaderDisplay();
+                    alert("فشل تأكيد المعاملة البرمجية: " + e.message);
                 }
             }
-
-            displayMessageInUI(serviceType, text, true, userAddress);
-            if (serviceType === 1) input.value = "";
         }
 
-        // دالة موحدة لعرض منسق واحترافي للرسائل داخل الواجهة
-        function displayMessageInUI(serviceType, content, isSent, senderAddress) {
+        function displayMessageInUI(serviceType, content, isSent, senderAddress, isPublicMsg, messageId = null) {
             const area = document.getElementById('messagesArea');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = isSent ? 'message sent' : 'message received';
             
-            msgDiv.style.borderLeft = isGroupChat ? "4px solid #00ff88" : "4px solid #f3ba2f";
-            const shortSender = senderAddress.substring(0, 6) + "..." + senderAddress.substring(38);
+            if (!content && messageId) {
+                const existingMsg = document.getElementById(`msg-${messageId}`);
+                if (existingMsg) existingMsg.remove();
+                return;
+            }
+
+            let msgDiv = document.getElementById(`msg-${messageId}`);
+            let isEdit = false;
+            
+            if (msgDiv) {
+                msgDiv.innerHTML = ""; 
+                isEdit = true;
+            } else {
+                msgDiv = document.createElement('div');
+                if (messageId) msgDiv.id = `msg-${messageId}`;
+            }
+
+            msgDiv.className = isSent ? 'message sent' : 'message received';
+            msgDiv.style.borderLeft = isPublicMsg ? "4px solid #00ff88" : "4px solid #f3ba2f";
+            
+            let shortSender = senderAddress;
+            if(senderAddress.startsWith("0x")) {
+                shortSender = senderAddress.substring(0, 6) + "..." + senderAddress.substring(38);
+            }
+            
+            const headerSpan = document.createElement('div');
+            headerSpan.style.cssText = "display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px; gap: 10px;";
             
             const titleSpan = document.createElement('small');
-            titleSpan.style.cssText = "color:#aaa; display:block; margin-bottom:4px; font-weight:bold; font-size:0.75rem;";
-            titleSpan.innerText = isGroupChat ? `🌐 منشور من: ${shortSender}` : `🔒 رسالة خاصة`;
-            msgDiv.appendChild(titleSpan);
+            titleSpan.style.cssText = "color:#aaa; font-weight:bold; font-size:0.75rem;";
+            titleSpan.innerText = isPublicMsg ? `🌐 منشور عام من: ${shortSender}` : `🔒 رسالة خاصة`;
+            headerSpan.appendChild(titleSpan);
+
+            // أزرار التحكم تظهر للمرسل فقط في الساحة العامة
+            if (isPublicMsg && isSent && messageId && serviceType === 1) {
+                const controlsDiv = document.createElement('div');
+                controlsDiv.style.cssText = "display: flex; gap: 5px;";
+
+                const editBtn = document.createElement('button');
+                editBtn.innerText = "✏️";
+                editBtn.style.cssText = "background: none; border: none; cursor: pointer; font-size: 0.8rem;";
+                editBtn.onclick = () => editPublicMessage(messageId, content);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerText = "❌";
+                deleteBtn.style.cssText = "background: none; border: none; cursor: pointer; font-size: 0.8rem;";
+                deleteBtn.onclick = () => deletePublicMessage(messageId);
+
+                controlsDiv.appendChild(editBtn);
+                controlsDiv.appendChild(deleteBtn);
+                headerSpan.appendChild(controlsDiv);
+            } else if (isPublicMsg && isSent && messageId && (serviceType === 2 || serviceType === 3)) {
+                const controlsDiv = document.createElement('div');
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerText = "❌";
+                deleteBtn.style.cssText = "background: none; border: none; cursor: pointer; font-size: 0.8rem;";
+                deleteBtn.onclick = () => deletePublicMessage(messageId);
+                controlsDiv.appendChild(deleteBtn);
+                headerSpan.appendChild(controlsDiv);
+            }
+
+            msgDiv.appendChild(headerSpan);
 
             if (serviceType === 1) {
-                const textNode = document.createTextNode(content);
-                msgDiv.appendChild(textNode);
+                const textContainer = document.createElement('span');
+                textContainer.innerText = content;
+                msgDiv.appendChild(textContainer);
             } else if (serviceType === 2) {
                 const img = document.createElement('img');
                 img.src = content;
@@ -419,8 +498,40 @@
                 msgDiv.appendChild(audio);
             }
 
-            area.appendChild(msgDiv);
+            if (!isEdit) {
+                area.appendChild(msgDiv);
+            }
             area.scrollTop = area.scrollHeight;
+        }
+
+        async function editPublicMessage(messageId, oldContent) {
+            const newContent = prompt("قم بتعديل منشورك:", oldContent);
+            if (!newContent || newContent.trim() === "" || newContent.trim() === oldContent) return;
+
+            try {
+                await db.ref(`public_messages/${messageId}`).update({
+                    content: newContent.trim(),
+                    timestamp: Date.now()
+                });
+                alert("تم تعديل المنشور بنجاح! ✨");
+            } catch (err) {
+                alert("فشل التعديل: لا تملك صلاحية تعديل هذا المنشور.");
+            }
+        }
+
+        async function deletePublicMessage(messageId) {
+            if (!confirm("هل أنت متأكد من رغبتك في حذف هذا المنشور نهائياً؟")) return;
+
+            try {
+                await db.ref(`public_messages/${messageId}`).remove();
+                alert("تم حذف المنشور بنجاح! 🗑️");
+            } catch (err) {
+                alert("فشل الحذف: لا تملك صلاحية حذف هذا المنشور.");
+            }
+        }
+
+        function playGame(gameType) {
+            alert(`جاري تجهيز واجهة لعبة [${gameType}] للربط مع العقد الذكي لـ SINU...`);
         }
     </script>
 </body>
