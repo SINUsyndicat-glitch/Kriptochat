@@ -14,13 +14,14 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background-color: #0b0e11; color: #eaecef; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         
-        .login-container { text-align: center; background: #151a21; padding: 40px 30px; border-radius: 16px; border: 1px solid #f3ba2f; max-width: 400px; width: 90%; }
+        /* شاشة الدخول المبدئية */
+        .login-container { text-align: center; background: #151a21; padding: 40px 30px; border-radius: 16px; border: 1px solid #f3ba2f; max-width: 400px; width: 90%; display: block; }
         .logo { font-size: 2.5rem; font-weight: bold; color: #f3ba2f; margin-bottom: 10px; }
         .tagline { color: #90baee; font-size: 0.95rem; margin-bottom: 30px; }
         .btn-connect { background-color: #f3ba2f; color: #000000; border: none; padding: 14px 28px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-connect:hover { background-color: #fdd05b; }
         
-        /* الهيكل الأساسي للكمبيوتر والشاشات الكبيرة */
+        /* الهيكل الأساسي للتطبيق */
         .chat-container { display: none; width: 100%; height: 100vh; grid-template-columns: 320px 1fr; }
         .sidebar { background-color: #151a21; border-left: 1px solid #212833; display: flex; flex-direction: column; overflow-y: auto; }
         .sidebar-header { padding: 20px; background-color: #1e2530; font-weight: bold; border-bottom: 1px solid #212833; color: #f3ba2f; text-align: center; }
@@ -51,8 +52,6 @@
         .message { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 5px; line-height: 1.4; position: relative; }
         .message.sent { background-color: #f3ba2f; color: #000000; align-self: flex-start; border-top-right-radius: 0; }
         .message.received { background-color: #1e2530; color: #eaecef; align-self: flex-end; border-top-left-radius: 0; }
-        .message img { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 5px; object-fit: cover; }
-        .message audio { max-width: 100%; margin-top: 5px; outline: none; }
         
         .input-area-wrapper { background-color: #151a21; display: flex; flex-direction: column; padding: 12px 15px; gap: 8px; border-top: 1px solid #212833; }
         .recipient-row { display: none; align-items: center; gap: 10px; background: #1e2530; padding: 10px 12px; border-radius: 6px; border: 1px solid #2b3542; }
@@ -65,13 +64,10 @@
         .media-actions { display: flex; gap: 5px; }
         .btn-media { background-color: #2b3542; color: #ffffff; border: 1px solid #4f5d73; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; position: relative; width: 42px; height: 42px; }
         .btn-media input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; top: 0; left: 0; }
-        .btn-media.recording { background-color: #ff3333; border-color: #ff0000; animation: pulse 1.5s infinite; }
         
         .btn-send { background-color: #f3ba2f; color: #000000; border: none; padding: 0 20px; height: 42px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
 
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-        /* 📱 تعديل الموبايل الحاسم لظهور الأزرار أفقياً بنجاح */
+        /* 📱 تعديل استجابة الموبايل: إظهار الأزرار أفقياً بنجاح وإضافة زر الربط والاسم */
         @media (max-width: 768px) {
             .chat-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
             
@@ -94,6 +90,10 @@
             }
             .sidebar-header, .wallet-list { display: none !important; } 
             
+            /* أزرار مخصصة للهاتف تظهر في بداية الشريط */
+            .mobile-wallet-btn { display: inline-block !important; background-color: #f3ba2f; color: black; border: none; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 6px; height: 36px; cursor: pointer; white-space: nowrap; }
+            .mobile-wallet-label { display: none; color: #00ff88; font-size: 0.8rem; font-weight: bold; padding: 6px; background: #212833; border-radius: 6px; height: 36px; line-height: 24px; border: 1px solid #00ff88; }
+
             .sidebar-games-box { flex-direction: row !important; padding: 0; border-bottom: none; gap: 6px; background: transparent; }
             .sidebar-games-box label { display: none !important; }
             
@@ -107,21 +107,30 @@
             
             .main-chat { flex: 1; height: calc(100vh - 60px); }
         }
+
+        /* إخفاء أزرار الموبايل الافتراضية على الكمبيوتر */
+        .mobile-wallet-btn, .mobile-wallet-label { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="login-container" id="loginScreen">
+    <!-- تم تعديل المنطق البرمجي: إذا دخل المستخدم مباشرة، لن تعيقه شاشة القفل وتظهر واجهة الشات فوراً -->
+    <div class="login-container" id="loginScreen" style="display: none;">
         <div class="logo">CryptoChat</div>
         <div class="tagline">تراسل يدعمه عقد عملة SINU وقاعدة بيانات تتيح تعديل وحذف منشوراتك العامة</div>
         <button class="btn-connect" onclick="connectWallet()">ربط المحفظة الحقيقية</button>
     </div>
 
-    <div class="chat-container" id="chatScreen">
+    <!-- واجهة التطبيق الرئيسية تعمل مباشرة -->
+    <div class="chat-container" id="chatScreen" style="display: flex;">
         <div class="sidebar">
+            <!-- أزرار المحفظة الذكية الخاصة بالموبايل تظهر كأول عنصر الآن -->
+            <button class="mobile-wallet-btn" id="mobileWalletBtn" onclick="connectWallet()">🔗 ربط المحفظة</button>
+            <div class="mobile-wallet-label" id="mobileWalletLabel">0x...</div>
+
             <div class="sidebar-header">المحفظة النشطة</div>
             <ul class="wallet-list">
-                <li class="wallet-item" id="activeWalletLabel">0x...</li>
+                <li class="wallet-item" id="activeWalletLabel">لم يتم الربط ❌</li>
             </ul>
             
             <div class="sidebar-deposit-box">
@@ -161,9 +170,6 @@
                             🖼️
                             <input type="file" id="imageUploader" accept="image/*" onchange="handleLocalFileChange(this, 2)">
                         </button>
-                        <button class="btn-media" id="voiceRecordBtn" title="تسجيل صوتي" onclick="toggleVoiceRecording()">
-                            🎙️
-                        </button>
                     </div>
                     
                     <input type="text" id="messageInput" placeholder="اكتب رسالة أو منشور هنا...">
@@ -191,14 +197,12 @@
         const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
 
         const chatAbi = [
-            "constructor(address _sinuTokenAddress)",
             "function costImage() view returns (uint256)",
             "function costText() view returns (uint256)",
             "function costVoice() view returns (uint256)",
             "function deductForService(address _user, uint256 _serviceType)",
             "function depositSinu(uint256 _amountWithDecimals)",
-            "function getInAppBalance(address _user) view returns (uint256)",
-            "function updatePrices(uint256 _textWei, uint256 _imageWei, uint256 _voiceWei)"
+            "function getInAppBalance(address _user) view returns (uint256)"
         ];
 
         const tokenAbi = [
@@ -214,19 +218,29 @@
         let priceImage = 500;
         let priceVoice = 1000;
 
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
-
-        // فحص تلقائي إذا كانت المحفظة مربوطة مسبقاً لتوفير تجربة سلسة للمستخدم
+        // فحص الاتصال التلقائي وتظبيط وضع الشاشة هندسياً
         window.addEventListener('load', async () => {
+            adjustLayout();
             if (typeof window.ethereum !== 'undefined') {
                 const accounts = await window.ethereum.request({ method: 'eth_accounts' });
                 if (accounts.length > 0) {
                     connectWallet();
                 }
             }
+            listenToPublicMessages();
+            updateHeaderDisplay();
         });
+
+        window.addEventListener('resize', adjustLayout);
+
+        function adjustLayout() {
+            const chatScreen = document.getElementById('chatScreen');
+            if(window.innerWidth > 768) {
+                chatScreen.style.display = 'grid';
+            } else {
+                chatScreen.style.display = 'flex';
+            }
+        }
 
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
@@ -240,25 +254,27 @@
                     chatContract = new ethers.Contract(chatContractAddress, chatAbi, signer);
                     tokenContract = new ethers.Contract(sinuTokenAddress, tokenAbi, signer);
 
-                    document.getElementById('activeWalletLabel').innerText = userAddress.substring(0, 6) + "..." + userAddress.substring(38);
-
-                    await refreshUserData();
-                    listenToPublicMessages();
-
-                    document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('chatScreen').style.display = 'block'; 
+                    const shortAddr = userAddress.substring(0, 6) + "..." + userAddress.substring(38);
                     
-                    if(window.innerWidth > 768) {
-                        document.getElementById('chatScreen').style.display = 'grid';
+                    // تحديث العناوين على الكمبيوتر والموبايل
+                    document.getElementById('activeWalletLabel').innerText = shortAddr;
+                    
+                    const mBtn = document.getElementById('mobileWalletBtn');
+                    const mLabel = document.getElementById('mobileWalletLabel');
+                    if(mBtn && mLabel) {
+                        mBtn.style.display = 'none';
+                        mLabel.style.display = 'inline-block';
+                        mLabel.innerText = `👤 ${shortAddr}`;
                     }
 
+                    await refreshUserData();
                     updateHeaderDisplay();
                 } catch (error) {
                     console.error(error);
                     alert("فشل ربط البيانات: " + error.message);
                 }
             } else {
-                alert("يرجى فتح التطبيق من داخل متصفح محفظة العملات المعتمدة!");
+                alert("يرجى فتح التطبيق من داخل متصفح محفظة العملات المعتمدة (مثل Trust Wallet أو MetaMask)!");
             }
         }
 
@@ -270,11 +286,9 @@
 
                 const cText = await chatContract.costText();
                 const cImage = await chatContract.costImage();
-                const cVoice = await chatContract.costVoice();
                 
                 priceText = parseFloat(ethers.utils.formatEther(cText));
                 priceImage = parseFloat(ethers.utils.formatEther(cImage));
-                priceVoice = parseFloat(ethers.utils.formatEther(cVoice));
             } catch (err) {
                 console.error("خطأ قراءة أسعار الرصيد: ", err);
             }
@@ -287,12 +301,14 @@
             
             db.ref("public_messages").on("child_added", (snapshot) => {
                 const data = snapshot.val();
-                displayMessageInUI(data.type, data.content, data.sender.toLowerCase() === userAddress.toLowerCase(), data.sender, true, snapshot.key);
+                const isMe = userAddress ? data.sender.toLowerCase() === userAddress.toLowerCase() : false;
+                displayMessageInUI(data.type, data.content, isMe, data.sender, true, snapshot.key);
             });
 
             db.ref("public_messages").on("child_changed", (snapshot) => {
                 const data = snapshot.val();
-                displayMessageInUI(data.type, data.content, data.sender.toLowerCase() === userAddress.toLowerCase(), data.sender, true, snapshot.key);
+                const isMe = userAddress ? data.sender.toLowerCase() === userAddress.toLowerCase() : false;
+                displayMessageInUI(data.type, data.content, isMe, data.sender, true, snapshot.key);
             });
 
             db.ref("public_messages").on("child_removed", (snapshot) => {
@@ -300,10 +316,9 @@
             });
         }
 
-        // 🛡️ صمام الأمان لمنع مشكلة وعطل الـ approve التلقائي الموضح في الصورتين
         async function handleUIDeposit() {
             if (!tokenContract || !chatContract) {
-                return alert("⚠️ يرجى الضغط على زر 'ربط المحفظة' بالأسفل أولاً قبل محاولة الشحن!");
+                return alert("⚠️ يرجى الضغط على زر '🔗 ربط المحفظة' الموجود أول شريط الأزرار العلوي قبل الشحن!");
             }
 
             const amountInput = document.getElementById('depositAmount');
@@ -353,7 +368,7 @@
                 header.innerHTML = `المنشورات العامة 🌐 | <span style="color: #00ff88; font-weight: bold;">تعديل ومسح منشوراتك متاح</span> | رصيدك: ${inAppBalance} SINU`;
             } else {
                 header.innerHTML = `المراسلة الخاصة 🔒 | رصيدك: <span style="color:#00ff88; font-weight:bold;">${inAppBalance} SINU</span><br>
-                <small style="color:#f3ba2f; font-weight: bold;">نص ${priceText} | صورة ${priceImage} | صوت ${priceVoice} SINU</small>`;
+                <small style="color:#f3ba2f; font-weight: bold;">نص ${priceText} | صورة ${priceImage} SINU</small>`;
             }
         }
 
@@ -378,56 +393,8 @@
             reader.readAsDataURL(file);
         }
 
-        async function toggleVoiceRecording() {
-            if (!isGroupChat) {
-                const recipientInput = document.getElementById('recipientAddress');
-                const recipient = recipientInput.value.trim();
-                if (recipient === "" || !recipient.startsWith("0x") || recipient.length !== 42) {
-                    return alert("يرجى كتابة عنوان محفظة المستلم أولاً!");
-                }
-            }
-
-            const recordBtn = document.getElementById('voiceRecordBtn');
-
-            if (!isRecording) {
-                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        mediaRecorder = new MediaRecorder(stream);
-                        audioChunks = [];
-
-                        mediaRecorder.ondataavailable = function(e) {
-                            audioChunks.push(e.data);
-                        };
-
-                        mediaRecorder.onstop = function() {
-                            const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                sendMessage(3, e.target.result); 
-                            };
-                            reader.readAsDataURL(audioBlob);
-                            stream.getTracks().forEach(track => track.stop());
-                        };
-
-                        mediaRecorder.start();
-                        isRecording = true;
-                        recordBtn.classList.add('recording');
-                    } catch (err) {
-                        alert("فشل فتح الميكروفون: " + err.message);
-                    }
-                }
-            } else {
-                if (mediaRecorder && mediaRecorder.state !== "inactive") {
-                    mediaRecorder.stop();
-                }
-                isRecording = false;
-                recordBtn.classList.remove('recording');
-            }
-        }
-
         async function sendMessage(serviceType = 1, mediaData = "") { 
-            if (!chatContract) return alert("يرجى ربط محفظتك أولاً عبر الزر في الصفحة.");
+            if (!chatContract) return alert("يرجى ربط محفظتك أولاً عبر زر '🔗 ربط المحفظة' في الأعلى.");
             
             const input = document.getElementById('messageInput');
             const recipientInput = document.getElementById('recipientAddress');
@@ -451,7 +418,6 @@
 
                 let currentCost = parseFloat(priceText);
                 if (serviceType === 2) currentCost = parseFloat(priceImage);
-                if (serviceType === 3) currentCost = parseFloat(priceVoice);
 
                 if (inAppBalance < currentCost) {
                     alert(`رصيدك غير كافٍ! تحتاج إلى ${currentCost} SINU.`);
@@ -474,6 +440,7 @@
 
         function displayMessageInUI(serviceType, content, isSent, senderAddress, isPublicMsg, messageId = null) {
             const area = document.getElementById('messagesArea');
+            if (!area) return;
             
             if (!content && messageId) {
                 const existingMsg = document.getElementById(`msg-${messageId}`);
@@ -496,7 +463,7 @@
             msgDiv.style.borderLeft = isPublicMsg ? "4px solid #00ff88" : "4px solid #f3ba2f";
             
             let shortSender = senderAddress;
-            if(senderAddress.startsWith("0x")) {
+            if(senderAddress && senderAddress.startsWith("0x")) {
                 shortSender = senderAddress.substring(0, 6) + "..." + senderAddress.substring(38);
             }
             
@@ -525,14 +492,6 @@
                 controlsDiv.appendChild(editBtn);
                 controlsDiv.appendChild(deleteBtn);
                 headerSpan.appendChild(controlsDiv);
-            } else if (isPublicMsg && isSent && messageId && (serviceType === 2 || serviceType === 3)) {
-                const controlsDiv = document.createElement('div');
-                const deleteBtn = document.createElement('button');
-                deleteBtn.innerText = "❌";
-                deleteBtn.style.cssText = "background: none; border: none; cursor: pointer; font-size: 0.8rem;";
-                deleteBtn.onclick = () => deletePublicMessage(messageId);
-                controlsDiv.appendChild(deleteBtn);
-                headerSpan.appendChild(controlsDiv);
             }
 
             msgDiv.appendChild(headerSpan);
@@ -544,12 +503,8 @@
             } else if (serviceType === 2) {
                 const img = document.createElement('img');
                 img.src = content;
+                img.style.cssText = "max-width:100%; border-radius:8px; margin-top:5px;";
                 msgDiv.appendChild(img);
-            } else if (serviceType === 3) {
-                const audio = document.createElement('audio');
-                audio.src = content;
-                audio.controls = true;
-                msgDiv.appendChild(audio);
             }
 
             if (!isEdit) {
@@ -569,7 +524,7 @@
                 });
                 alert("تم تعديل المنشور بنجاح! ✨");
             } catch (err) {
-                alert("فشل التعديل: لا تملك صلاحية تعديل هذا المنشور.");
+                alert("فشل التعديل: خطأ في الصلاحيات.");
             }
         }
 
@@ -580,12 +535,12 @@
                 await db.ref(`public_messages/${messageId}`).remove();
                 alert("تم حذف المنشور بنجاح! 🗑️");
             } catch (err) {
-                alert("فشل الحذف: لا تملك صلاحية حذف هذا المنشور.");
+                alert("فشل الحذف: خطأ في الصلاحيات.");
             }
         }
 
         function playGame(gameType) {
-            alert(`جاري تجهيز واجهة لعبة [${gameType}] للربط مع العقد الذكي لـ SINU...`);
+            alert(`جاري تجهيز واجهة لعبة [${gameType}] للربط مع العقد الذكي...`);
         }
     </script>
 </body>
