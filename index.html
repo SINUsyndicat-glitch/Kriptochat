@@ -20,7 +20,7 @@
         .btn-connect { background-color: #f3ba2f; color: #000000; border: none; padding: 14px 28px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-connect:hover { background-color: #fdd05b; }
         
-        /* تحسين توزيع الشاشة الكلية */
+        /* الهيكل الأساسي للكمبيوتر والشاشات الكبيرة */
         .chat-container { display: none; width: 100%; height: 100vh; grid-template-columns: 320px 1fr; }
         .sidebar { background-color: #151a21; border-left: 1px solid #212833; display: flex; flex-direction: column; overflow-y: auto; }
         .sidebar-header { padding: 20px; background-color: #1e2530; font-weight: bold; border-bottom: 1px solid #212833; color: #f3ba2f; text-align: center; }
@@ -36,12 +36,11 @@
         .sidebar-deposit-box label { font-size: 0.85rem; color: #00ff88; text-align: center; font-weight: bold; }
         .sidebar-deposit-box input { background: #0b0e11; border: 1px solid #2b3542; padding: 10px; border-radius: 6px; color: white; text-align: center; outline: none; font-size: 1rem; }
         .sidebar-deposit-box button { background: linear-gradient(135deg, #00ff88 0%, #00bc62 100%); color: black; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
-        .sidebar-deposit-box button:hover { transform: scale(1.02); }
+        
+        .btn-buy-sinu { background: linear-gradient(135deg, #ff007a 0%, #7928ca 100%); color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; text-align: center; transition: 0.2s; text-decoration: none; display: block; }
+        .btn-buy-sinu:hover { transform: scale(1.02); }
 
-        .btn-buy-sinu { background: linear-gradient(135deg, #ff007a 0%, #7928ca 100%); color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; text-align: center; transition: 0.2s; margin-top: 5px; text-decoration: none; display: block; }
-        .btn-buy-sinu:hover { transform: scale(1.02); box-shadow: 0 0 10px rgba(255, 0, 122, 0.5); }
-
-        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; height: 100%; }
+        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; height: 100%; overflow: hidden; }
         
         .navigation-tabs { display: flex; background: #151a21; border-bottom: 1px solid #212833; }
         .tab-btn { flex: 1; padding: 18px; background: none; border: none; color: #b7bdc6; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; font-size: 0.95rem; }
@@ -73,31 +72,43 @@
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        /* 📱 التحديث البرمجي الخارق لدعم الموبايل وعدم إخفاء الأزرار */
+        /* 📱 تعديل برمجي حاسم للهواتف والموبايل لمنع الاختفاء نهائياً */
         @media (max-width: 768px) {
-            .chat-container { grid-template-columns: 1fr; }
+            .chat-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+            
+            /* تحويل الـ sidebar لشريط علوي أفقي ثابت فوق الشات تماماً */
             .sidebar { 
-                display: flex; 
-                flex-direction: row; 
-                width: 100%; 
-                height: auto; 
+                display: flex !important; 
+                flex-direction: row !important; 
+                width: 100% !important; 
+                height: auto !important; 
+                max-height: 60px;
                 border-left: none; 
-                border-bottom: 1px solid #212833;
-                overflow-x: auto;
-                overflow-y: hidden;
+                border-bottom: 2px solid #212833;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
                 white-space: nowrap;
-                padding: 5px;
-                gap: 8px;
+                padding: 6px 10px;
+                gap: 10px;
+                background-color: #151a21;
+                align-items: center;
+                z-index: 999;
             }
-            .sidebar-header, .wallet-list { display: none; } /* إخفاء العناصر غير الهامة في الموبايل لتوفير مساحة */
-            .sidebar-games-box { flex-direction: row; padding: 5px; border-bottom: none; align-items: center; }
-            .sidebar-games-box label { display: none; }
-            .sidebar-deposit-box { flex-direction: row; padding: 5px; border-top: none; align-items: center; gap: 5px; }
-            .sidebar-deposit-box label { display: none; }
-            .sidebar-deposit-box input { width: 80px; padding: 8px; font-size: 0.9rem; }
-            .sidebar-deposit-box button { padding: 8px 12px; font-size: 0.85rem; }
-            .btn-buy-sinu { margin-top: 0; padding: 8px 12px; font-size: 0.85rem; }
-            .btn-game { padding: 8px 12px; font-size: 0.85rem; }
+            .sidebar-header, .wallet-list { display: none !important; } 
+            
+            .sidebar-games-box { flex-direction: row !important; padding: 0; border-bottom: none; gap: 6px; background: transparent; }
+            .sidebar-games-box label { display: none !important; }
+            
+            .sidebar-deposit-box { flex-direction: row !important; padding: 0; border-top: none; gap: 6px; background: transparent; }
+            .sidebar-deposit-box label { display: none !important; }
+            
+            /* تصغير الحقول لتناسب شريط الموبايل العلوي */
+            .sidebar-deposit-box input { width: 70px !important; padding: 6px !important; font-size: 0.85rem; height: 36px; }
+            .sidebar-deposit-box button { padding: 6px 12px !important; font-size: 0.8rem; height: 36px; white-space: nowrap; }
+            .btn-buy-sinu { padding: 6px 12px !important; font-size: 0.8rem; height: 36px; line-height: 24px; white-space: nowrap; }
+            .btn-game { padding: 6px 12px !important; font-size: 0.8rem; height: 36px; white-space: nowrap; }
+            
+            .main-chat { flex: 1; height: calc(100vh - 60px); }
         }
     </style>
 </head>
@@ -110,28 +121,26 @@
     </div>
 
     <div class="chat-container" id="chatScreen">
-        <!-- القائمة الجانبية (تعمل كقائمة علوية منزلقة في الموبايل لكي لا تختفي أزرارك) -->
+        <!-- القائمة العلوية/الجانبية الثابتة والمصلحة للموبايل -->
         <div class="sidebar">
             <div class="sidebar-header">المحفظة النشطة</div>
             <ul class="wallet-list">
                 <li class="wallet-item" id="activeWalletLabel">0x...</li>
             </ul>
             
-            <div class="sidebar-games-box">
-                <label>🎮 منصة ألعاب SINU</label>
-                <button class="btn-game" onclick="playGame('luck')">🎰 الحظ (قريباً)</button>
-                <button class="btn-game" onclick="playGame('prediction')">📈 التوقعات</button>
-                <button class="btn-game" onclick="playGame('mafia')">🕵️‍♂️ مافيا</button>
-            </div>
-            
             <div class="sidebar-deposit-box">
-                <label>📥 شحن الرصيد</label>
                 <input type="number" id="depositAmount" placeholder="الكمية" min="1" value="100">
                 <button onclick="handleUIDeposit()">تعبئة الرصيد 🚀</button>
                 
                 <a href="https://app.uniswap.org/#/swap?outputCurrency=0x56bB247c424958948B63de291A0C7f45d8651B76" target="_blank" class="btn-buy-sinu">
                     💳 شراء SINU
                 </a>
+            </div>
+
+            <div class="sidebar-games-box">
+                <button class="btn-game" onclick="playGame('luck')">🎰 الحظ (قريباً)</button>
+                <button class="btn-game" onclick="playGame('prediction')">📈 التوقعات</button>
+                <button class="btn-game" onclick="playGame('mafia')">🕵️‍♂️ مافيا</button>
             </div>
         </div>
         
@@ -231,8 +240,12 @@
                     listenToPublicMessages();
 
                     document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('chatScreen').style.display = 'grid';
+                    document.getElementById('chatScreen').style.display = 'block'; // تعديل ليتوافق Flex/Block في الموبايل
                     
+                    if(window.innerWidth > 768) {
+                        document.getElementById('chatScreen').style.display = 'grid';
+                    }
+
                     updateHeaderDisplay();
                 } catch (error) {
                     console.error(error);
@@ -482,7 +495,6 @@
             titleSpan.innerText = isPublicMsg ? `🌐 منشور عام من: ${shortSender}` : `🔒 رسالة خاصة`;
             headerSpan.appendChild(titleSpan);
 
-            // ظهور أزرار التعديل والحذف بشكل صحيح ومضمون لمالك المنشور في العام
             if (isPublicMsg && isSent && messageId && serviceType === 1) {
                 const controlsDiv = document.createElement('div');
                 controlsDiv.style.cssText = "display: flex; gap: 5px;";
