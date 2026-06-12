@@ -38,7 +38,6 @@
         .sidebar-deposit-box button { background: linear-gradient(135deg, #00ff88 0%, #00bc62 100%); color: black; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
         
         .btn-buy-sinu { background: linear-gradient(135deg, #ff007a 0%, #7928ca 100%); color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; text-align: center; transition: 0.2s; text-decoration: none; display: block; }
-        .btn-buy-sinu:hover { transform: scale(1.02); }
 
         .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; height: 100%; overflow: hidden; }
         
@@ -72,11 +71,10 @@
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        /* 📱 تعديل برمجي حاسم للهواتف والموبايل لمنع الاختفاء نهائياً */
+        /* 📱 تعديل الموبايل الحاسم لظهور الأزرار أفقياً بنجاح */
         @media (max-width: 768px) {
             .chat-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
             
-            /* تحويل الـ sidebar لشريط علوي أفقي ثابت فوق الشات تماماً */
             .sidebar { 
                 display: flex !important; 
                 flex-direction: row !important; 
@@ -102,7 +100,6 @@
             .sidebar-deposit-box { flex-direction: row !important; padding: 0; border-top: none; gap: 6px; background: transparent; }
             .sidebar-deposit-box label { display: none !important; }
             
-            /* تصغير الحقول لتناسب شريط الموبايل العلوي */
             .sidebar-deposit-box input { width: 70px !important; padding: 6px !important; font-size: 0.85rem; height: 36px; }
             .sidebar-deposit-box button { padding: 6px 12px !important; font-size: 0.8rem; height: 36px; white-space: nowrap; }
             .btn-buy-sinu { padding: 6px 12px !important; font-size: 0.8rem; height: 36px; line-height: 24px; white-space: nowrap; }
@@ -121,7 +118,6 @@
     </div>
 
     <div class="chat-container" id="chatScreen">
-        <!-- القائمة العلوية/الجانبية الثابتة والمصلحة للموبايل -->
         <div class="sidebar">
             <div class="sidebar-header">المحفظة النشطة</div>
             <ul class="wallet-list">
@@ -222,6 +218,16 @@
         let audioChunks = [];
         let isRecording = false;
 
+        // فحص تلقائي إذا كانت المحفظة مربوطة مسبقاً لتوفير تجربة سلسة للمستخدم
+        window.addEventListener('load', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    connectWallet();
+                }
+            }
+        });
+
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
                 try {
@@ -240,7 +246,7 @@
                     listenToPublicMessages();
 
                     document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('chatScreen').style.display = 'block'; // تعديل ليتوافق Flex/Block في الموبايل
+                    document.getElementById('chatScreen').style.display = 'block'; 
                     
                     if(window.innerWidth > 768) {
                         document.getElementById('chatScreen').style.display = 'grid';
@@ -252,7 +258,7 @@
                     alert("فشل ربط البيانات: " + error.message);
                 }
             } else {
-                alert("يرجى فتح التطبيق من متصفح محفظة العملات المعتمدة!");
+                alert("يرجى فتح التطبيق من داخل متصفح محفظة العملات المعتمدة!");
             }
         }
 
@@ -294,7 +300,12 @@
             });
         }
 
+        // 🛡️ صمام الأمان لمنع مشكلة وعطل الـ approve التلقائي الموضح في الصورتين
         async function handleUIDeposit() {
+            if (!tokenContract || !chatContract) {
+                return alert("⚠️ يرجى الضغط على زر 'ربط المحفظة' بالأسفل أولاً قبل محاولة الشحن!");
+            }
+
             const amountInput = document.getElementById('depositAmount');
             const val = amountInput.value.trim();
             if(!val || parseFloat(val) <= 0) return alert("يرجى كتابة كمية شحن صالحة!");
@@ -416,6 +427,8 @@
         }
 
         async function sendMessage(serviceType = 1, mediaData = "") { 
+            if (!chatContract) return alert("يرجى ربط محفظتك أولاً عبر الزر في الصفحة.");
+            
             const input = document.getElementById('messageInput');
             const recipientInput = document.getElementById('recipientAddress');
             let text = serviceType === 1 ? input.value.trim() : mediaData;
