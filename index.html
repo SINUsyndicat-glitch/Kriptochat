@@ -10,7 +10,6 @@
         body { background-color: #0b0e11; color: #eaecef; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .login-container { text-align: center; background: #151a21; padding: 40px 30px; border-radius: 16px; border: 1px solid #f3ba2f; max-width: 400px; width: 90%; }
         .logo { font-size: 2.5rem; font-weight: bold; color: #f3ba2f; margin-bottom: 10px; }
-        .logo span { color: #ffffff; }
         .tagline { color: #90baee; font-size: 0.95rem; margin-bottom: 30px; }
         .btn-connect { background-color: #f3ba2f; color: #000000; border: none; padding: 14px 28px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-connect:hover { background-color: #fdd05b; }
@@ -23,23 +22,21 @@
         .wallet-item { padding: 15px 20px; border-bottom: 1px solid #1e2530; cursor: pointer; font-size: 0.85rem; color: #b7bdc6; }
         .wallet-item.active { background-color: #212833; color: #ffffff; border-right: 4px solid #f3ba2f; }
         
-        /* أزرار التحكم في الأقسام */
+        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; }
         .navigation-tabs { display: flex; background: #151a21; border-bottom: 1px solid #212833; }
         .tab-btn { flex: 1; padding: 15px; background: none; border: none; color: #b7bdc6; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; }
         .tab-btn.active { color: #f3ba2f; background: #1e2530; border-bottom: 3px solid #f3ba2f; }
 
-        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; }
         .chat-header { padding: 15px 20px; background-color: #151a21; border-bottom: 1px solid #212833; font-size: 0.9rem; color: #ffffff; }
         .messages-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         
-        /* تصميم الرسائل وفقاعات العرض المتطورة للوسائط */
         .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 5px; }
         .message.sent { background-color: #f3ba2f; color: #000000; align-self: flex-start; border-top-right-radius: 0; }
         .message.received { background-color: #1e2530; color: #eaecef; align-self: flex-end; border-top-left-radius: 0; }
-        .message img { max-width: 100%; border-radius: 8px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .message img { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 5px; object-fit: cover; }
         .message audio { max-width: 100%; margin-top: 5px; outline: none; }
         
-        /* منطقة الإدخال المطورة مع خيارات الوسائط المتعددة (صور وأصوات) */
+        /* منطقة الإدخال ورفع المرفقات */
         .input-area-wrapper { background-color: #151a21; display: flex; flex-direction: column; padding: 15px 20px; gap: 8px; border-top: 1px solid #212833; }
         .recipient-row { display: none; align-items: center; gap: 10px; background: #1e2530; padding: 8px 12px; border-radius: 6px; border: 1px solid #2b3542; }
         .recipient-row label { font-size: 0.85rem; color: #f3ba2f; white-space: nowrap; font-weight: bold; }
@@ -48,16 +45,25 @@
         .input-area { display: flex; gap: 10px; width: 100%; align-items: center; }
         .input-area input { flex: 1; background-color: #212833; border: 1px solid #2b3542; padding: 12px; border-radius: 8px; color: #ffffff; outline: none; }
         
-        /* أزرار المرفقات المتطورة */
         .media-actions { display: flex; gap: 6px; }
-        .btn-media { background-color: #2b3542; color: #ffffff; border: 1px solid #4f5d73; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-media { background-color: #2b3542; color: #ffffff; border: 1px solid #4f5d73; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; position: relative; }
         .btn-media:hover { background-color: #3e4d5f; border-color: #f3ba2f; }
+        .btn-media input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; top: 0; left: 0; }
+        
+        /* تصميم مخصص لزر التسجيل الصوتي الحي عند التفعيل */
+        .btn-media.recording { background-color: #ff3333; border-color: #ff0000; animation: pulse 1.5s infinite; }
+        
         .btn-send { background-color: #f3ba2f; color: #000000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
-        /* صندوق الشحن السريع بالواجهة */
         .deposit-box { padding: 15px; background: #1e2530; border-top: 1px solid #212833; display: flex; flex-direction: column; gap: 8px; }
         .deposit-box input { background: #0b0e11; border: 1px solid #2b3542; padding: 8px; border-radius: 6px; color: white; text-align: center; outline: none; }
         .deposit-box button { background: #00ff88; color: black; border: none; padding: 8px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
 
         @media (max-width: 768px) { .chat-container { grid-template-columns: 1fr; } .sidebar { display: none; } }
     </style>
@@ -92,7 +98,7 @@
 
             <div class="chat-header" id="chatHeader">المحادثة النشطة | رصيدك: جاري التحميل...</div>
             <div class="messages-area" id="messagesArea">
-                <div class="message received">مرحباً بك! يمكنك الآن إرسال النصوص 💬، الصور 🖼️، والمقاطع الصوتية 🎙️ بكل سهولة.</div>
+                <div class="message received">مرحباً بك! اضغط على 🎙️ للتحدث والتسجيل الحي، أو اضغط على 🖼️ لرفع صورة.</div>
             </div>
             
             <div class="input-area-wrapper">
@@ -101,10 +107,18 @@
                     <input type="text" id="recipientAddress" placeholder="أدخل عنوان محفظة الطرف الآخر (0x...)">
                 </div>
                 <div class="input-area">
+                    
                     <div class="media-actions">
-                        <button class="btn-media" title="إرسال صورة" onclick="sendMediaPrompt(2)">🖼️</button>
-                        <button class="btn-media" title="إرسال رسالة صوتية" onclick="sendMediaPrompt(3)">🎙️</button>
+                        <button class="btn-media" title="رفع صورة من الاستوديو">
+                            🖼️
+                            <input type="file" id="imageUploader" accept="image/*" onchange="handleLocalFileChange(this, 2)">
+                        </button>
+                        <!-- زر الميكروفون المطور للتسجيل الحي المباشر -->
+                        <button class="btn-media" id="voiceRecordBtn" title="اضغط للتسجيل الصوتي الفوري" onclick="toggleVoiceRecording()">
+                            🎙️
+                        </button>
                     </div>
+                    
                     <input type="text" id="messageInput" placeholder="اكتب رسالة نصية هنا...">
                     <button class="btn-send" onclick="sendMessage(1)">إرسال</button>
                 </div>
@@ -140,6 +154,11 @@
         let priceImage = 5;
         let priceVoice = 10;
 
+        // متغيرات التحكم في مسجل الصوت الحي
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
                 try {
@@ -162,10 +181,10 @@
                     updateHeaderDisplay();
                 } catch (error) {
                     console.error(error);
-                    alert("فشل جلب البيانات من العقد الذكي: " + error.message);
+                    alert("فشل ربط البيانات: " + error.message);
                 }
             } else {
-                alert("يرجى فتح الموقع من متصفح محفظة الكريبتو الحقيقية!");
+                alert("يرجى فتح الموقع من محفظة كريبتو حقيقية!");
             }
         }
 
@@ -182,7 +201,7 @@
                 priceImage = parseFloat(ethers.utils.formatEther(cImage));
                 priceVoice = parseFloat(ethers.utils.formatEther(cVoice));
             } catch (err) {
-                console.error("خطأ في تحديث البيانات الفعلي: ", err);
+                console.error("خطأ قراءة البيانات: ", err);
             }
             updateHeaderDisplay();
         }
@@ -200,7 +219,7 @@
                 const depositTx = await chatContract.depositSinu(amountWei);
                 await depositTx.wait();
                 
-                alert("تم الشحن والإيداع بنجاح! 🎉");
+                alert("تم شحن الرصيد داخل العقد بنجاح! 🎉");
                 amountInput.value = "";
                 await refreshUserData();
             } catch (error) {
@@ -232,33 +251,96 @@
                 header.innerHTML = `الدردشة الجماعية العامة | <span style="color: #00ff88;">مجانية تماماً 🌐</span> | رصيدك المشحون: ${inAppBalance} SINU`;
             } else {
                 header.innerHTML = `المراسلة الخاصة 🔒 | رصيدك المشحون داخل العقد: <span style="color:#00ff88; font-weight:bold;">${inAppBalance} SINU</span><br>
-                <small style="color:#aaa;">تكلفة الخدمة الحالية: نص ${priceText} | صورة ${priceImage} | صوت ${priceVoice} SINU</small>`;
+                <small style="color:#aaa;">تكلفة الخدمة: نص ${priceText} | صورة ${priceImage} | صوت ${priceVoice} SINU</small>`;
             }
         }
 
-        // نافذة منبثقة مخصصة لطلب رابط الصورة أو المقطع الصوتي من المستخدم
-        function sendMediaPrompt(serviceType) {
+        function handleLocalFileChange(inputElement, serviceType) {
             if (!isGroupChat) {
                 const recipientInput = document.getElementById('recipientAddress');
                 const recipient = recipientInput.value.trim();
                 if (recipient === "" || !recipient.startsWith("0x") || recipient.length !== 42) {
-                    return alert("يرجى كتابة عنوان محفظة المستلم (0x...) بشكل صحيح أولاً قبل إرسال الوسائط!");
+                    inputElement.value = "";
+                    return alert("يرجى كتابة عنوان محفظة المستلم (0x...) أولاً قبل اختيار الملف!");
                 }
             }
 
-            if (serviceType === 2) {
-                const url = prompt("يرجى إدخال رابط الصورة المباشر (URL):");
-                if (url) sendMessage(2, url);
-            } else if (serviceType === 3) {
-                const url = prompt("يرجى إدخال رابط الملف الصوتي المباشر (mp3, wav):");
-                if (url) sendMessage(3, url);
+            const file = inputElement.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                sendMessage(serviceType, e.target.result);
+                inputElement.value = ""; 
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ==========================================
+        // 🎙️ منطق إدارة ومحاكاة التسجيل الصوتي الحي الفوري
+        // ==========================================
+        async function toggleVoiceRecording() {
+            if (!isGroupChat) {
+                const recipientInput = document.getElementById('recipientAddress');
+                const recipient = recipientInput.value.trim();
+                if (recipient === "" || !recipient.startsWith("0x") || recipient.length !== 42) {
+                    return alert("يرجى كتابة عنوان محفظة المستلم (0x...) أولاً قبل التسجيل الصوتي!");
+                }
+            }
+
+            const recordBtn = document.getElementById('voiceRecordBtn');
+
+            if (!isRecording) {
+                // بدء عملية تسجيل حية حقيقية
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        mediaRecorder = new MediaRecorder(stream);
+                        audioChunks = [];
+
+                        mediaRecorder.ondataavailable = function(e) {
+                            audioChunks.push(e.data);
+                        };
+
+                        mediaRecorder.onstop = function() {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                sendMessage(3, e.target.result); // إرسال الصوت المسجل بصيغة Base64
+                            };
+                            reader.readAsDataURL(audioBlob);
+                            
+                            // إغلاق الميكروفون لتحرير الموارد بالهاتف
+                            stream.getTracks().forEach(track => track.stop());
+                        };
+
+                        mediaRecorder.start();
+                        isRecording = true;
+                        recordBtn.classList.add('recording');
+                        recordBtn.setAttribute('title', 'اضغط مرة أخرى لإيقاف وإرسال التسجيل');
+                        document.getElementById('messageInput').placeholder = "جاري تسجيل صوتك الآن... اضغط مجدداً على الميكروفون للإرسال 🎙️";
+                    } catch (err) {
+                        alert("فشل الوصول للميكروفون: " + err.message);
+                    }
+                } else {
+                    alert("متصفحك الحالي لا يدعم ميزة تسجيل الصوت المباشر!");
+                }
+            } else {
+                // إيقاف التسجيل الحالي وبدء المعالجة والخصم
+                if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                }
+                isRecording = false;
+                recordBtn.classList.remove('recording');
+                recordBtn.setAttribute('title', 'اضغط للتسجيل الصوتي الفوري');
+                document.getElementById('messageInput').placeholder = "اكتب رسالة نصية هنا...";
             }
         }
 
-        function sendMessage(serviceType = 1, mediaUrl = "") { 
+        function sendMessage(serviceType = 1, mediaData = "") { 
             const input = document.getElementById('messageInput');
             const recipientInput = document.getElementById('recipientAddress');
-            let text = serviceType === 1 ? input.value.trim() : mediaUrl;
+            let text = serviceType === 1 ? input.value.trim() : mediaData;
 
             if (text === "") return;
 
@@ -267,9 +349,8 @@
                 if (serviceType === 2) currentCost = parseFloat(priceImage);
                 if (serviceType === 3) currentCost = parseFloat(priceVoice);
 
-                // الفحص والتحقق من الرصيد المتوفر للخدمة المطلوبة
                 if (inAppBalance < currentCost) {
-                    alert(`رصيدك المودع في المنصة غير كافٍ! تحتاج إلى ${currentCost} SINU لإرسال هذه الوسائط. رصيدك الحالي هو ${inAppBalance} SINU.`);
+                    alert(`رصيدك المودع في المنصة غير كافٍ! تحتاج إلى ${currentCost} SINU. رصيدك الحالي هو ${inAppBalance} SINU.`);
                     return;
                 }
                 
@@ -281,7 +362,6 @@
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message sent';
             
-            // إدارة تنسيق الترويسة للرسائل الخاصة الموجهة لمحفظة معينة
             if (!isGroupChat) {
                 msgDiv.style.borderLeft = "3px solid #f3ba2f";
                 const shortTarget = recipientInput.value.substring(0, 6) + "..." + recipientInput.value.substring(38);
@@ -291,14 +371,13 @@
                 msgDiv.appendChild(titleSpan);
             }
 
-            // بناء المحتوى ديناميكياً حسب نوع الخدمة (نص، صورة، صوت)
             if (serviceType === 1) {
                 const textNode = document.createTextNode(text);
                 msgDiv.appendChild(textNode);
             } else if (serviceType === 2) {
                 const img = document.createElement('img');
                 img.src = text;
-                img.alt = "صورة مرسلة";
+                img.alt = "صورة مرفوعة من الهاتف";
                 msgDiv.appendChild(img);
             } else if (serviceType === 3) {
                 const audio = document.createElement('audio');
