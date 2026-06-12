@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CryptoChat - التطبيق الرسمي</title>
+    <title>CryptoChat & Games - التطبيق الرسمي</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background-color: #0b0e11; color: #eaecef; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        
+        /* شاشة تسجيل الدخول */
         .login-container { text-align: center; background: #151a21; padding: 40px 30px; border-radius: 16px; border: 1px solid #f3ba2f; max-width: 400px; width: 90%; }
         .logo { font-size: 2.5rem; font-weight: bold; color: #f3ba2f; margin-bottom: 10px; }
         .logo span { color: #ffffff; }
@@ -15,258 +17,379 @@
         .btn-connect { background-color: #f3ba2f; color: #000000; border: none; padding: 14px 28px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-connect:hover { background-color: #fdd05b; }
         
-        /* شاشة الشات */
+        /* الحاوية الرئيسية للتطبيق */
         .chat-container { display: none; width: 100%; height: 100vh; grid-template-columns: 350px 1fr; }
+        
+        /* القائمة الجانبية */
         .sidebar { background-color: #151a21; border-left: 1px solid #212833; display: flex; flex-direction: column; }
         .sidebar-header { padding: 20px; background-color: #1e2530; font-weight: bold; border-bottom: 1px solid #212833; color: #f3ba2f; }
         .wallet-list { list-style: none; overflow-y: auto; flex: 1; }
         .wallet-item { padding: 15px 20px; border-bottom: 1px solid #1e2530; cursor: pointer; font-size: 0.85rem; color: #b7bdc6; }
         .wallet-item.active { background-color: #212833; color: #ffffff; border-right: 4px solid #f3ba2f; }
-        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; }
-        .chat-header { padding: 15px 20px; background-color: #151a21; border-bottom: 1px solid #212833; font-size: 0.9rem; color: #ffffff; }
-        .messages-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        
+        /* روابط الدعم السريع (Uniswap والألعاب) */
+        .quick-links-box { padding: 15px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #212833; background: #1a202c; }
+        .btn-link-uniswap { background-color: #ff007a; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; text-align: center; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
+        .btn-link-uniswap:hover { background-color: #ff3395; }
+        
+        /* صندوق شحن الرصيد الفعلي في الجانب */
+        .deposit-box { padding: 15px; background: #1e2530; border-top: 1px solid #212833; display: flex; flex-direction: column; gap: 8px; }
+        .deposit-box input { background: #0b0e11; border: 1px solid #2b3542; padding: 8px; border-radius: 6px; color: white; text-align: center; }
+        .deposit-box button { background: #00ff88; color: black; border: none; padding: 8px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+
+        /* منطقة العمل الرئيسية */
+        .main-content { display: flex; flex-direction: column; background-color: #0b0e11; height: 100%; }
+        
+        /* شريط التبويب العلوي الاحترافي للتحويل */
+        .navigation-tabs { display: flex; background: #151a21; border-bottom: 1px solid #212833; }
+        .tab-btn { flex: 1; padding: 15px; background: none; border: none; color: #b7bdc6; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; }
+        .tab-btn.active { color: #f3ba2f; background: #1e2530; border-bottom: 3px solid #f3ba2f; }
+        
+        .chat-header { padding: 12px 20px; background-color: #1a202c; font-size: 0.9rem; color: #ffffff; text-align: center; border-bottom: 1px solid #212833; }
+        
+        /* مساحات العرض المتغيرة */
+        .view-section { flex: 1; display: none; overflow-y: auto; padding: 20px; }
+        .view-section.active { display: flex; flex-direction: column; }
+        
+        /* الشات */
+        .messages-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; }
         .message.sent { background-color: #f3ba2f; color: #000000; align-self: flex-start; border-top-right-radius: 0; }
         .message.received { background-color: #1e2530; color: #eaecef; align-self: flex-end; border-top-left-radius: 0; }
-        .input-area { padding: 15px 20px; background-color: #151a21; display: flex; gap: 10px; }
+        .input-area { padding: 15px 20px; background-color: #151a21; display: flex; gap: 10px; border-top: 1px solid #212833; }
         .input-area input { flex: 1; background-color: #212833; border: 1px solid #2b3542; padding: 12px; border-radius: 8px; color: #ffffff; outline: none; }
         .input-area button { background-color: #f3ba2f; color: #000000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        /* ساحة الألعاب PvP والخارجية */
+        .games-arena { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 10px; }
+        .game-card { background: #151a21; border: 1px solid #2b3542; border-radius: 12px; padding: 20px; text-align: center; transition: 0.3s; position: relative; overflow: hidden; }
+        .game-card:hover { border-color: #f3ba2f; transform: translateY(-3px); }
+        .game-badge { position: absolute; top: 10px; left: 10px; background: #90baee; color: black; font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .game-badge.live { background: #00ff88; }
+        .game-icon { font-size: 3rem; margin-bottom: 10px; }
+        .game-title { font-size: 1.2rem; font-weight: bold; color: #ffffff; margin-bottom: 8px; }
+        .game-desc { font-size: 0.85rem; color: #b7bdc6; margin-bottom: 15px; }
+        .btn-play { background: #f3ba2f; color: black; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; text-decoration: none; display: inline-block; }
+        
+        /* نافذة التحدي (Matchmaking) */
+        .challenge-box { background: #1e2530; padding: 20px; border-radius: 12px; border: 1px solid #f3ba2f; margin-top: 25px; display: flex; flex-direction: column; gap: 12px; max-width: 500px; align-self: center; width: 100%; }
+        .challenge-box h3 { color: #f3ba2f; text-align: center; }
+        .challenge-box input { background: #0b0e11; border: 1px solid #2b3542; padding: 10px; border-radius: 6px; color: white; }
         
         @media (max-width: 768px) { .chat-container { grid-template-columns: 1fr; } .sidebar { display: none; } }
     </style>
 </head>
 <body>
 
+    <!-- شاشة تسجيل الدخول وربط المحفظة -->
     <div class="login-container" id="loginScreen">
         <div class="logo">Crypto<span>Chat</span></div>
-        <div class="tagline">تراسل آمن وجاد يدعمه عقد عملة SINU الذكي</div>
+        <div class="tagline">تراسل آمن وجاد وألعاب PvP يدعمها عقد عملة SINU الذكي</div>
         <button class="btn-connect" onclick="connectWallet()">ربط المحفظة الحقيقية</button>
     </div>
 
+    <!-- حاوية التطبيق الرئيسية بعد تسجيل الدخول -->
     <div class="chat-container" id="chatScreen">
+        
+        <!-- القائمة الجانبية -->
         <div class="sidebar">
-            <div class="sidebar-header">المحادثات النشطة</div>
+            <div class="sidebar-header">المحافظ النشطة</div>
             <ul class="wallet-list">
                 <li class="wallet-item active">0x71C...497a (محادثة مشفرة)</li>
             </ul>
+            
+            <!-- أزرار الروابط السريعة المضافة حديثاً -->
+            <div class="quick-links-box">
+                <!-- استبدل الرابط أدناه برابط الشراء المباشر لعملتك على Uniswap لشبكة Base -->
+                <a href="https://app.uniswap.org/#/swap?outputCurrency=0x56bB247c424958948B63de291A0C7f45d8651B76&chain=base" target="_blank" class="btn-link-uniswap">🦄 شراء SINU عبر Uniswap</a>
+            </div>
+            
+            <!-- نظام شحن الرصيد الفعلي في الواجهة[span_1](start_span)[span_1](end_span) -->
+            <div class="deposit-box">
+                <label style="font-size: 0.8rem; color: #b7bdc6; text-align: center;">شحن رصيد المنصة الفعلي</label>
+                <input type="number" id="depositAmount" placeholder="الكمية بـ SINU" min="1">
+                <button onclick="handleDepositClick()">إيداع فوري بالعقد 📥</button>
+            </div>
         </div>
-        <div class="main-chat">
-            <div class="chat-header" id="chatHeader">المحادثة النشطة | رصيدك: جاري التحميل...</div>
-            <div class="messages-area" id="messagesArea">
-                <div class="message received">مرحباً بك! كل رسالة ترسلها هنا ستخصم 30 SINU من رصيدك المودع في العقد الذكي.</div>
+
+        <!-- ساحة العمل المتغيرة وعناصر التحكم العلوي -->
+        <div class="main-content">
+            
+            <!-- أزرار التبويب للتحويل الاحترافي في نفس الصفحة -->
+            <div class="navigation-tabs">
+                <button class="tab-btn active" id="tabGroup" onclick="switchMainView('group')">الدردشة العامة 🌐</button>
+                <button class="tab-btn" id="tabPrivate" onclick="switchMainView('private')">المراسلة الخاصة 🔒</button>
+                <button class="tab-btn" id="tabGames" onclick="switchMainView('games')"> ساحة الألعاب والـ PvP ⚔️</button>
             </div>
-            <div class="input-area">
-                <input type="text" id="messageInput" placeholder="اكتب رسالة مشفرة...">
-                <button onclick="sendMessage()">إرسال</button>
+
+            <!-- هيدر عرض الرصيد والوضع الحالي[span_2](start_span)[span_2](end_span) -->
+            <div class="chat-header" id="chatHeader">جاري جلب البيانات من شبكة Base...</div>
+
+            <!-- قسم الشات (عام وخاص) -->
+            <div id="chatSectionContainer" class="view-section active">
+                <div class="messages-area" id="messagesArea">
+                    <div class="message received">مرحباً بك في المنصة المحدثة! يمكنك التبديل بين الشات والالعاب من التبويبات بالأعلى بسلاسة.</div>
+                </div>
+                <div class="input-area">
+                    <input type="text" id="messageInput" placeholder="اكتب شيئاً هنا...">
+                    <button onclick="handleSendClick()">إرسال</button>
+                </div>
             </div>
+
+            <!-- قسم ساحة الألعاب PvP والألعاب الخارجية المدمجة -->
+            <div id="gamesSectionContainer" class="view-section">
+                <div class="games-arena">
+                    
+                    <!-- اللعبة الخارجية الأولى: SINU Syndicate المرفوعة سابقاً -->
+                    <div class="game-card">
+                        <div class="game-badge live">لايف أونلاين 🌐</div>
+                        <div class="game-icon">🧠</div>
+                        <div class="game-title">SINU Syndicate</div>
+                        <div class="game-desc">تطبيق واختبار معلومات الـ Web3 الشهير الخاص بنا. العب واختبر معلوماتك الآن!</div>
+                        <!-- ضع رابط لعبة SINU Syndicate الحقيقي الخاص بك على Vercel أو الاستضافة مكان علامة # -->
+                        <a href="https://html-uwq7.vercel.app/" target="_blank" class="btn-play" style="background: #00ff88;">العب الآن (رابط خارجي) 🚀</a>
+                    </div>
+
+                    <!-- اللعبة الخارجية الثانية: Sinu Mafia المرفوعة سابقاً -->
+                    <div class="game-card">
+                        <div class="game-badge live">لايف أونلاين 🌐</div>
+                        <div class="game-icon">🕵️‍♂️</div>
+                        <div class="game-title">Sinu Mafia</div>
+                        <div class="game-desc">لعبة المافيا التنافسية الممتعة المعتمدة بالكامل على مجتمع وبيئة SINU.</div>
+                        <!-- ضع رابط لعبة Sinu Mafia الحقيقي الخاص بك هنا مكان علامة # -->
+                        <a href="https://your-sinu-mafia-link.vercel.app" target="_blank" class="btn-play" style="background: #00ff88;">العب الآن (رابط خارجي) 🚀</a>
+                    </div>
+
+                    <!-- لعبة PvP القادمة: Domino Arena -->
+                    <div class="game-card">
+                        <div class="game-badge">تحدي ذكي ⚔️</div>
+                        <div class="game-icon">🎲</div>
+                        <div class="game-title">Domino Arena</div>
+                        <div class="game-desc">تحدّ أصدقاءك في مباراة دومينو حماسية 1 ضد 1 واكسب رهان الـ $SINU$ الفوري.</div>
+                        <button class="btn-play" onclick="setupChallenge('Domino Arena')">طلب تحدي PvP</button>
+                    </div>
+
+                    <!-- لعبة PvP القادمة: حجر ورقة مقص -->
+                    <div class="game-card">
+                        <div class="game-badge">تحدي ذكي ⚔️</div>
+                        <div class="game-icon">✂️</div>
+                        <div class="game-title">حجر ورقة مقص</div>
+                        <div class="game-desc">اللعبة الكلاسيكية السريعة؛ اختر حركتك السرية وسجل فوزك على البلوكشين.</div>
+                        <button class="btn-play" onclick="setupChallenge('حجر ورقة مقص')">طلب تحدي PvP</button>
+                    </div>
+                </div>
+
+                <!-- صندوق إعدادات التحدي والرهان لألعاب الـ PvP -->
+                <div class="challenge-box" id="challengeBox" style="display: none;">
+                    <h3 id="selectedGameTitle">إعداد مباراة التحدي</h3>
+                    <input type="text" id="opponentAddress" placeholder="عنوان محفظة الخصم (0x...)">
+                    <input type="number" id="betAmount" placeholder="قيمة رهان التحدي (SINU)">
+                    <button class="btn-connect" style="background: #ef4444; color: white;" onclick="startPvPMatch()">إطلاق التحدي الذكي ⚔️</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        
         // ==========================================
-// 1. الإعدادات وعناوين العقود الذكية على شبكة Base
-// ==========================================
-// تنبيه: ضع عنوان العقد الجديد الذي ظهر لك في Remix بعد الـ Deploy مكان هذا العنوان
-const chatContractAddress = "0x690192AEeE16c40f6f7d0CA30BAA1B0884259068"; 
-const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; // عنوان عملتك الحقيقي والنهائي
+        // 1. إعدادات البلوكشين وعناوين العقود الذكية الحية
+        // ==========================================
+        const chatContractAddress = "0x690192AEeE16c40f6f7d0CA30BAA1B0884259068"; // عقد الشات والتحصيل الشامل الخاص بك[span_3](start_span)[span_3](end_span)
+        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76";     // عقد عملة SINU الموثق والحقيقي[span_4](start_span)[span_4](end_span)
 
-// الـ ABI المطابق لـ الـ JSON الخاص بك بنسبة 100%
-const chatAbi = [
-    "constructor(address _sinuTokenAddress)",
-    "error InsufficientChatBalance()",
-    "error InsufficientWalletBalance()",
-    "error NoEarnings()",
-    "error OwnableInvalidOwner(address owner)",
-    "error OwnableUnauthorizedAccount(address account)",
-    "error ReentrancyGuardReentrantCall()",
-    "error TransferFailed()",
-    "error UnknownService()",
-    "error ZeroAmount()",
-    "event EarningsWithdrawn(address indexed owner, uint256 amount)",
-    "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
-    "event PricesUpdated(uint256 newTextCost, uint256 newImageCost, uint256 newVoiceCost)",
-    "event ServiceDeducted(address indexed user, string serviceType, uint256 amount)",
-    "event SinuDeposited(address indexed user, uint256 amount)",
-    "function costImage() view returns (uint256)",
-    "function costText() view returns (uint256)",
-    "function costVoice() view returns (uint256)",
-    "function deductForService(address _user, uint256 _serviceType)",
-    "function depositSinu(uint256 _amountWithDecimals)",
-    "function getInAppBalance(address _user) view returns (uint256)",
-    "function owner() view returns (uint256)",
-    "function renounceOwnership()",
-    "function sinuToken() view returns (address)",
-    "function totalOwnerEarnings() view returns (uint256)",
-    "function transferOwnership(address newOwner)",
-    "function updatePrices(uint256 _textWei, uint256 _imageWei, uint256 _voiceWei)",
-    "function withdrawEarnings()"
-];
+        const chatAbi = [
+            "constructor(address _sinuTokenAddress)",
+            "error InsufficientChatBalance()",
+            "error InsufficientWalletBalance()",
+            "error NoEarnings()",
+            "error OwnableInvalidOwner(address owner)",
+            "error OwnableUnauthorizedAccount(address account)",
+            "error ReentrancyGuardReentrantCall()",
+            "error TransferFailed()",
+            "error UnknownService()",
+            "error ZeroAmount()",
+            "function costImage() view returns (uint256)",
+            "function costText() view returns (uint256)",
+            "function costVoice() view returns (uint256)",
+            "function deductForService(address _user, uint256 _serviceType)",
+            "function depositSinu(uint256 _amountWithDecimals)",
+            "function getInAppBalance(address _user) view returns (uint256)",
+            "function owner() view returns (uint256)",
+            "function totalOwnerEarnings() view returns (uint256)",
+            "function updatePrices(uint256 _textWei, uint256 _imageWei, uint256 _voiceWei)",
+            "function withdrawEarnings()"
+        ];
 
-// ABI العملة الأساسي لعملية الموافقة والسحب الشحن
-const tokenAbi = [
-    "function approve(address spender, uint256 amount) external returns (bool)",
-    "function balanceOf(address account) view returns (uint256)"
-];
+        const tokenAbi = [
+            "function approve(address spender, uint256 amount) external returns (bool)",
+            "function balanceOf(address account) view returns (uint256)"
+        ];
 
-let provider, signer, chatContract, tokenContract, userAddress;
-let inAppBalance = 0;
-let isGroupChat = true; // الوضع الافتراضي: شات عام ومجاني
+        let provider, signer, chatContract, tokenContract, userAddress;
+        let inAppBalance = 0;
+        let currentMode = 'group'; // الأوضاع المتاحة: group, private, games[span_5](start_span)[span_5](end_span)
 
-// الأسعار الافتراضية (تُحدث تلقائياً من البلوكشين فور الاتصال)
-let priceText = 300;
-let priceImage = 500;
-let priceVoice = 1000;
+        let priceText = 300;
+        let priceImage = 500;
+        let priceVoice = 1000;
 
-// ==========================================
-// 2. دوال ربط المحفظة وقراءة بيانات البلوكشين الحقيقية
-// ==========================================
-async function connectWallet() {
-    if (typeof window.ethereum !== 'undefined') {
-        try {
-            // طلب إذن الاتصال بمحفظة المستخدم
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            userAddress = accounts[0];
+        // ==========================================
+        // 2. دوال الاتصال والتحديث الفوري
+        // ==========================================
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userAddress = accounts[0];
 
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            signer = provider.getSigner();
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
 
-            // ربط العقود ذكياً بالواجهة الخلفية للمتصفح
-            chatContract = new ethers.Contract(chatContractAddress, chatAbi, signer);
-            tokenContract = new ethers.Contract(sinuTokenAddress, tokenAbi, signer);
+                    chatContract = new ethers.Contract(chatContractAddress, chatAbi, signer);
+                    tokenContract = new ethers.Contract(sinuTokenAddress, tokenAbi, signer);
 
-            // جلب البيانات الأساسية من شبكة Base الحقيقية
-            await refreshUserData();
+                    await refreshUserData();
 
-            // إخفاء شاشة تسجيل الدخول وإظهار الشات الفخم
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('chatScreen').style.display = 'grid';
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('chatScreen').style.display = 'grid';
+                    
+                    updateHeaderDisplay();
+                } catch (error) {
+                    alert("فشل الربط وبناء الاتصال الذكي: " + error.message);
+                }
+            } else {
+                alert("يرجى فتح التطبيق من متصفح محفظة الـ Web3 الخاصة بك!");
+            }
+        }
+
+        async function refreshUserData() {
+            try {
+                const rawBalance = await chatContract.getInAppBalance(userAddress);
+                inAppBalance = rawBalance.toNumber();
+
+                const cText = await chatContract.costText();
+                const cImage = await chatContract.costImage();
+                const cVoice = await chatContract.costVoice();
+                
+                priceText = ethers.utils.formatEther(cText);
+                priceImage = ethers.utils.formatEther(cImage);
+                priceVoice = ethers.utils.formatEther(cVoice);
+            } catch (err) {
+                console.error("خطأ أثناء تحديث أرصدة العقد: ", err);
+            }
+        }
+
+        // ==========================================
+        // 3. إدارة التبديل الفوري بين التبويبات (Views)
+        // ==========================================
+        function switchMainView(view) {
+            currentMode = view;
+            
+            // إزالة نشاط الأزرار بالكامل
+            document.getElementById('tabGroup').classList.remove('active');
+            document.getElementById('tabPrivate').classList.remove('active');
+            document.getElementById('tabGames').classList.remove('active');
+            
+            // إخفاء الأقسام الرئيسية
+            document.getElementById('chatSectionContainer').classList.remove('active');
+            document.getElementById('gamesSectionContainer').classList.remove('active');
+
+            // تفعيل التبويب المختار وعرض قسمه الخاص
+            if (view === 'group' || view === 'private') {
+                document.getElementById(view === 'group' ? 'tabGroup' : 'tabPrivate').classList.add('active');
+                document.getElementById('chatSectionContainer').classList.add('active');
+            } else if (view === 'games') {
+                document.getElementById('tabGames').classList.add('active');
+                document.getElementById('gamesSectionContainer').classList.add('active');
+            }
             
             updateHeaderDisplay();
-        } catch (error) {
-            console.error(error);
-            alert("فشل جلب البيانات من العقد الذكي: " + error.message);
         }
-    } else {
-        alert("يرجى فتح الموقع من متصفح محفظة الكريبتو الحقيقية (DApp Browser) الخاصة بك!");
-    }
-}
 
-// دالة لتحديث الأرصدة والأسعار دورياً
-async function refreshUserData() {
-    try {
-        // 1. جلب رصيد الشحن الداخلي للمستخدم من العقد (الذي يقسم تلقائياً على 10^18 في العقد)
-        const rawBalance = await chatContract.getInAppBalance(userAddress);
-        inAppBalance = rawBalance.toNumber();
-
-        // 2. جلب قيم الأسعار الحقيقية المخزنة بالعقد وتحويلها من Wei إلى Ether عادي
-        const cText = await chatContract.costText();
-        const cImage = await chatContract.costImage();
-        const cVoice = await chatContract.costVoice();
-        
-        priceText = ethers.utils.formatEther(cText);
-        priceImage = ethers.utils.formatEther(cImage);
-        priceVoice = ethers.utils.formatEther(cVoice);
-    } catch (err) {
-        console.error("خطأ في تحديث البيانات: ", err);
-    }
-}
-
-// ==========================================
-// 3. دالة شحن رصيد التطبيق الحقيقية (depositSinu)
-// ==========================================
-async function depositTokens(amountTokens) {
-    if (!chatContract) return alert("الرجاء ربط المحفظة أولاً!");
-    try {
-        // تحويل الرقم المدخل إلى صيغة Wei (إضافة 18 صفراً تلقائياً)
-        const amountWei = ethers.utils.parseEther(amountTokens.toString());
-        
-        showLoading(true); // تشغيل مؤشر الانتظار
-
-        // الخطوة الأولى: عمل موافقة (Approve) لعقد الشات بالتصرف بالعملات
-        const approveTx = await tokenContract.approve(chatContractAddress, amountWei);
-        await approveTx.wait(); // انتظار تأكيد المعاملة الأولى
-        
-        // الخطوة الثانية: الإيداع الفعلي بداخل العقد الذكي للشات
-        const depositTx = await chatContract.depositSinu(amountWei);
-        await depositTx.wait(); // انتظار تأكيد المعاملة الثانية على شبكة Base
-        
-        alert("تم شحن رصيد المنصة الحقيقي بنجاح تام! 🎉");
-        await refreshUserData();
-        updateHeaderDisplay();
-    } catch (error) {
-        console.error(error);
-        alert("فشلت عملية الإيداع الحقيقية: " + error.message);
-    } finally {
-        showLoading(false);
-    }
-}
-
-// ==========================================
-// 4. منطق إدارة الشات والواجهات (UI Logic)
-// ==========================================
-function switchChatMode(mode) {
-    isGroupChat = (mode === 'group');
-    updateHeaderDisplay();
-}
-
-function updateHeaderDisplay() {
-    const header = document.getElementById('chatHeader');
-    if (!header) return;
-    
-    if (isGroupChat) {
-        header.innerHTML = `الدردشة الجماعية العامة | <span style="color: #00ff88;">مجانية تماماً 🌐</span> | رصيدك المشحون: ${inAppBalance} SINU`;
-    } else {
-        header.innerHTML = `المراسلة الخاصة 🔒 | <span style="color: #f3ba2f;">تكلفة النص: ${priceText} SINU</span> | رصيدك المشحون: ${inAppBalance} SINU`;
-    }
-}
-
-function sendMessage(serviceType = 1) { // 1=نص، 2=صورة، 3=صوت
-    const input = document.getElementById('messageInput');
-    const text = input.value.trim();
-    const area = document.getElementById('messagesArea');
-
-    if (text === "" && serviceType === 1) return;
-
-    if (!isGroupChat) {
-        let currentCost = parseFloat(priceText);
-        if (serviceType === 2) currentCost = parseFloat(priceImage);
-        if (serviceType === 3) currentCost = parseFloat(priceVoice);
-
-        if (inAppBalance < currentCost) {
-            alert(`رصيدك غير كافٍ! لإرسال هذه الرسالة الخاصة تحتاج إلى ${currentCost} SINU.`);
-            return;
+        function updateHeaderDisplay() {
+            const header = document.getElementById('chatHeader');
+            if (!header) return;
+            
+            if (currentMode === 'group') {
+                header.innerHTML = `الدردشة الجماعية العامة | <span style="color: #00ff88;">مجانية ومفتوحة للجميع 🌐</span> | رصيدك المشحون: ${inAppBalance} SINU`;
+            } else if (currentMode === 'private') {
+                header.innerHTML = `المراسلة الخاصة الموثقة 🔒 | <span style="color: #f3ba2f;">التكلفة: ${priceText} SINU للرسالة</span> | رصيدك المشحون: ${inAppBalance} SINU`;
+            } else if (currentMode === 'games') {
+                header.innerHTML = `ساحة معارك الألعاب والـ PvP ⚔️ | رصيدك المتوفر للرهان والتحدي: ${inAppBalance} SINU`;
+            }
         }
-        
-        // الخصم الفوري محلياً من الواجهة (السيرفر يقوم به حقيقياً لاحقاً)
-        inAppBalance -= currentCost;
-        updateHeaderDisplay();
-    }
 
-    // عرض الرسالة بالواجهة بشكل منسق
-    const msgDiv = document.createElement('div');
-    msgDiv.className = isGroupChat ? 'message sent public' : 'message sent private';
-    
-    if (serviceType === 1) {
-        msgDiv.innerText = text;
-    } else if (serviceType === 2) {
-        msgDiv.innerHTML = `<img src="${text}" style="max-width: 220px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">`;
-    } else if (serviceType === 3) {
-        msgDiv.innerHTML = `<audio controls src="${text}"></audio>`;
-    }
+        // ==========================================
+        // 4. العمليات التفاعلية وإرسال المعاملات
+        // ==========================================
+        async function handleDepositClick() {
+            const amountInput = document.getElementById('depositAmount');
+            const val = parseFloat(amountInput.value);
+            if (!val || val <= 0) return alert("يرجى إدخال كمية SINU صحيحة للشحن!");
+            
+            try {
+                const amountWei = ethers.utils.parseEther(val.toString());
+                
+                // خطوة الموافقة (Approve) أولاً لحساب عقد الشات[span_6](start_span)[span_6](end_span)
+                const approveTx = await tokenContract.approve(chatContractAddress, amountWei);
+                await approveTx.wait();
+                
+                // خطوة الإيداع الفعلي[span_7](start_span)[span_7](end_span)
+                const depositTx = await chatContract.depositSinu(amountWei);
+                await depositTx.wait();
+                
+                alert("تم الإيداع بنجاح وتحديث حسابك في العقد! 🎉");
+                amountInput.value = "";
+                await refreshUserData();
+                updateHeaderDisplay();
+            } catch (error) {
+                alert("فشلت المعاملة: " + error.message);
+            }
+        }
 
-    area.appendChild(msgDiv);
-    input.value = "";
-    area.scrollTop = area.scrollHeight;
-}
+        function handleSendClick() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            const area = document.getElementById('messagesArea');
 
-// دالة مساعدة لإظهار مؤشر شحن وهمي/حقيقي أثناء الإيداع
-function showLoading(status) {
-    // يمكنك ربطها بـ Spinner في الـ CSS الخاص بك إذا أردت
-    console.log(status ? "جاري تنفيذ المعاملة على البلوكشين..." : "انتهت المعاملة.");
-}
+            if (text === "") return;
 
-        
+            if (currentMode === 'private') {
+                let cost = parseFloat(priceText);
+                if (inAppBalance < cost) {
+                    return alert(`رصيدك المودع في العقد غير كافٍ! تحتاج ${cost} SINU.`);
+                }
+                inAppBalance -= cost;
+                updateHeaderDisplay();
+            }
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message sent';
+            if(currentMode === 'private') msgDiv.style.borderLeft = "3px solid #f3ba2f";
+            
+            msgDiv.innerText = text;
+            area.appendChild(msgDiv);
+            input.value = "";
+            area.scrollTop = area.scrollHeight;
+        }
+
+        // ==========================================
+        // 5. منطق ساحة الألعاب PvP (المرحلة القادمة)
+        // ==========================================
+        function setupChallenge(gameName) {
+            document.getElementById('challengeBox').style.display = 'flex';
+            document.getElementById('selectedGameTitle').innerText = `تحدي حقيقي في لعبة: ${gameName}`;
+        }
+
+        function startPvPMatch() {
+            const opponent = document.getElementById('opponentAddress').value.trim();
+            const bet = document.getElementById('betAmount').value.trim();
+
+            if(!opponent || !bet) return alert("يرجى ملء الفراغات لتجهيز عقد الرهان والتحدي!");
+            
+            alert(`جاري تهيئة خوادم اللعبة.. قريباً سنقوم بربط هذا الزر بعقد الألعاب المستقل لخصم ${bet} SINU في صندوق تحدي PvP ضد المحفظة المنتهية بـ ${opponent.substring(0,6)}...`);
+        }
     </script>
 </body>
 </html>
