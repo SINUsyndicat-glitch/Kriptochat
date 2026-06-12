@@ -63,82 +63,210 @@
     </div>
 
     <script>
-        // عناوين العقود الحقيقية - ضع عناوينك هنا!
-        const chatContractAddress = "0xD7ACd2a9FD159E69Bb102A1ca21C9a3e3A5F771B"; // عقد الشات الخاص بك
         
-        // الـ ABI الحقيقي للتفاعل مع عقد الشات الخاص بك
-        const chatAbi = [
-            "function getInAppBalance(address _user) view returns (uint256)",
-            "function costPerMessage() view returns (uint256)"
-        ];
+        // ==========================================
+// 1. الإعدادات وعناوين العقود الذكية على شبكة Base
+// ==========================================
+// تنبيه: ضع عنوان العقد الجديد الذي ظهر لك في Remix بعد الـ Deploy مكان هذا العنوان
+const chatContractAddress = "0x690192AEeE16c40f6f7d0CA30BAA1B0884259068"; 
+const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; // عنوان عملتك الحقيقي والنهائي
 
-        let provider, signer, chatContract, userAddress;
-        let inAppBalance = 0;
+// الـ ABI المطابق لـ الـ JSON الخاص بك بنسبة 100%
+const chatAbi = [
+    "constructor(address _sinuTokenAddress)",
+    "error InsufficientChatBalance()",
+    "error InsufficientWalletBalance()",
+    "error NoEarnings()",
+    "error OwnableInvalidOwner(address owner)",
+    "error OwnableUnauthorizedAccount(address account)",
+    "error ReentrancyGuardReentrantCall()",
+    "error TransferFailed()",
+    "error UnknownService()",
+    "error ZeroAmount()",
+    "event EarningsWithdrawn(address indexed owner, uint256 amount)",
+    "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
+    "event PricesUpdated(uint256 newTextCost, uint256 newImageCost, uint256 newVoiceCost)",
+    "event ServiceDeducted(address indexed user, string serviceType, uint256 amount)",
+    "event SinuDeposited(address indexed user, uint256 amount)",
+    "function costImage() view returns (uint256)",
+    "function costText() view returns (uint256)",
+    "function costVoice() view returns (uint256)",
+    "function deductForService(address _user, uint256 _serviceType)",
+    "function depositSinu(uint256 _amountWithDecimals)",
+    "function getInAppBalance(address _user) view returns (uint256)",
+    "function owner() view returns (uint256)",
+    "function renounceOwnership()",
+    "function sinuToken() view returns (address)",
+    "function totalOwnerEarnings() view returns (uint256)",
+    "function transferOwnership(address newOwner)",
+    "function updatePrices(uint256 _textWei, uint256 _imageWei, uint256 _voiceWei)",
+    "function withdrawEarnings()"
+];
 
-        // 1. دالة ربط المحفظة الحقيقية وقراءة البيانات من البلوكشين
-        async function connectWallet() {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    // طلب الاتصال بالمحفظة (MetaMask / TrustWallet)
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    userAddress = accounts[0];
+// ABI العملة الأساسي لعملية الموافقة والسحب الشحن
+const tokenAbi = [
+    "function approve(address spender, uint256 amount) external returns (bool)",
+    "function balanceOf(address account) view returns (uint256)"
+];
 
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner();
+let provider, signer, chatContract, tokenContract, userAddress;
+let inAppBalance = 0;
+let isGroupChat = true; // الوضع الافتراضي: شات عام ومجاني
 
-                    // ربط الكود بعقد الشات الذكي الخاص بك
-                    chatContract = new ethers.Contract(chatContractAddress, chatAbi, signer);
+// الأسعار الافتراضية (تُحدث تلقائياً من البلوكشين فور الاتصال)
+let priceText = 300;
+let priceImage = 500;
+let priceVoice = 1000;
 
-                    // قراءة الرصيد الداخلي للمشترك من العقد الذكي مباشرة
-                    const rawBalance = await chatContract.getInAppBalance(userAddress);
-                    inAppBalance = rawBalance.toNumber();
+// ==========================================
+// 2. دوال ربط المحفظة وقراءة بيانات البلوكشين الحقيقية
+// ==========================================
+async function connectWallet() {
+    if (typeof window.ethereum !== 'undefined') {
+        try {
+            // طلب إذن الاتصال بمحفظة المستخدم
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            userAddress = accounts[0];
 
-                    // تحديث الواجهة والانتقال للشات
-                    document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('chatScreen').style.display = 'grid';
-                    document.body.style.alignItems = 'stretch';
-                    
-                    updateHeader();
-                } catch (error) {
-                    alert("حدث خطأ أثناء الاتصال: " + error.message);
-                }
-            } else {
-                alert("يرجى فتح هذا الموقع من داخل متصفح محفظة الكريبتو الخاصة بك (DApp Browser) ليعمل الربط الحقيقي!");
-            }
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+
+            // ربط العقود ذكياً بالواجهة الخلفية للمتصفح
+            chatContract = new ethers.Contract(chatContractAddress, chatAbi, signer);
+            tokenContract = new ethers.Contract(sinuTokenAddress, tokenAbi, signer);
+
+            // جلب البيانات الأساسية من شبكة Base الحقيقية
+            await refreshUserData();
+
+            // إخفاء شاشة تسجيل الدخول وإظهار الشات الفخم
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('chatScreen').style.display = 'grid';
+            
+            updateHeaderDisplay();
+        } catch (error) {
+            console.error(error);
+            alert("فشل جلب البيانات من العقد الذكي: " + error.message);
         }
+    } else {
+        alert("يرجى فتح الموقع من متصفح محفظة الكريبتو الحقيقية (DApp Browser) الخاصة بك!");
+    }
+}
 
-        function updateHeader() {
-            document.getElementById('chatHeader').innerHTML = `المحادثة الحقيقية | <span style="color: #f3ba2f; font-weight: bold;">رصيدك المودع في العقد: ${inAppBalance} SINU</span>`;
+// دالة لتحديث الأرصدة والأسعار دورياً
+async function refreshUserData() {
+    try {
+        // 1. جلب رصيد الشحن الداخلي للمستخدم من العقد (الذي يقسم تلقائياً على 10^18 في العقد)
+        const rawBalance = await chatContract.getInAppBalance(userAddress);
+        inAppBalance = rawBalance.toNumber();
+
+        // 2. جلب قيم الأسعار الحقيقية المخزنة بالعقد وتحويلها من Wei إلى Ether عادي
+        const cText = await chatContract.costText();
+        const cImage = await chatContract.costImage();
+        const cVoice = await chatContract.costVoice();
+        
+        priceText = ethers.utils.formatEther(cText);
+        priceImage = ethers.utils.formatEther(cImage);
+        priceVoice = ethers.utils.formatEther(cVoice);
+    } catch (err) {
+        console.error("خطأ في تحديث البيانات: ", err);
+    }
+}
+
+// ==========================================
+// 3. دالة شحن رصيد التطبيق الحقيقية (depositSinu)
+// ==========================================
+async function depositTokens(amountTokens) {
+    if (!chatContract) return alert("الرجاء ربط المحفظة أولاً!");
+    try {
+        // تحويل الرقم المدخل إلى صيغة Wei (إضافة 18 صفراً تلقائياً)
+        const amountWei = ethers.utils.parseEther(amountTokens.toString());
+        
+        showLoading(true); // تشغيل مؤشر الانتظار
+
+        // الخطوة الأولى: عمل موافقة (Approve) لعقد الشات بالتصرف بالعملات
+        const approveTx = await tokenContract.approve(chatContractAddress, amountWei);
+        await approveTx.wait(); // انتظار تأكيد المعاملة الأولى
+        
+        // الخطوة الثانية: الإيداع الفعلي بداخل العقد الذكي للشات
+        const depositTx = await chatContract.depositSinu(amountWei);
+        await depositTx.wait(); // انتظار تأكيد المعاملة الثانية على شبكة Base
+        
+        alert("تم شحن رصيد المنصة الحقيقي بنجاح تام! 🎉");
+        await refreshUserData();
+        updateHeaderDisplay();
+    } catch (error) {
+        console.error(error);
+        alert("فشلت عملية الإيداع الحقيقية: " + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ==========================================
+// 4. منطق إدارة الشات والواجهات (UI Logic)
+// ==========================================
+function switchChatMode(mode) {
+    isGroupChat = (mode === 'group');
+    updateHeaderDisplay();
+}
+
+function updateHeaderDisplay() {
+    const header = document.getElementById('chatHeader');
+    if (!header) return;
+    
+    if (isGroupChat) {
+        header.innerHTML = `الدردشة الجماعية العامة | <span style="color: #00ff88;">مجانية تماماً 🌐</span> | رصيدك المشحون: ${inAppBalance} SINU`;
+    } else {
+        header.innerHTML = `المراسلة الخاصة 🔒 | <span style="color: #f3ba2f;">تكلفة النص: ${priceText} SINU</span> | رصيدك المشحون: ${inAppBalance} SINU`;
+    }
+}
+
+function sendMessage(serviceType = 1) { // 1=نص، 2=صورة، 3=صوت
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    const area = document.getElementById('messagesArea');
+
+    if (text === "" && serviceType === 1) return;
+
+    if (!isGroupChat) {
+        let currentCost = parseFloat(priceText);
+        if (serviceType === 2) currentCost = parseFloat(priceImage);
+        if (serviceType === 3) currentCost = parseFloat(priceVoice);
+
+        if (inAppBalance < currentCost) {
+            alert(`رصيدك غير كافٍ! لإرسال هذه الرسالة الخاصة تحتاج إلى ${currentCost} SINU.`);
+            return;
         }
+        
+        // الخصم الفوري محلياً من الواجهة (السيرفر يقوم به حقيقياً لاحقاً)
+        inAppBalance -= currentCost;
+        updateHeaderDisplay();
+    }
 
-        // 2. دالة إرسال الرسالة وخصم الـ 30 رمزاً من الرصيد الحقيقي
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            const area = document.getElementById('messagesArea');
+    // عرض الرسالة بالواجهة بشكل منسق
+    const msgDiv = document.createElement('div');
+    msgDiv.className = isGroupChat ? 'message sent public' : 'message sent private';
+    
+    if (serviceType === 1) {
+        msgDiv.innerText = text;
+    } else if (serviceType === 2) {
+        msgDiv.innerHTML = `<img src="${text}" style="max-width: 220px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">`;
+    } else if (serviceType === 3) {
+        msgDiv.innerHTML = `<audio controls src="${text}"></audio>`;
+    }
 
-            if (text === "") return;
+    area.appendChild(msgDiv);
+    input.value = "";
+    area.scrollTop = area.scrollHeight;
+}
 
-            // شرط الـ 30 رمزاً الحقيقي
-            if (inAppBalance < 30) {
-                alert("فشل الإرسال! رصيدك المودع في العقد أقل من 30 SINU. اذهب لـ Remix واشحن عبر دالة depositSinu");
-                return;
-            }
+// دالة مساعدة لإظهار مؤشر شحن وهمي/حقيقي أثناء الإيداع
+function showLoading(status) {
+    // يمكنك ربطها بـ Spinner في الـ CSS الخاص بك إذا أردت
+    console.log(status ? "جاري تنفيذ المعاملة على البلوكشين..." : "انتهت المعاملة.");
+}
 
-            // الخصم البرمجي من الرصيد الظاهر
-            inAppBalance -= 30;
-            updateHeader();
-
-            // عرض الرسالة في الواجهة
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message sent';
-            msgDiv.innerText = text;
-            area.appendChild(msgDiv);
-
-            input.value = "";
-            area.scrollTop = area.scrollHeight;
-        }
+        
     </script>
 </body>
 </html>
-
