@@ -471,57 +471,46 @@ async function depositFunds(amountToDeposit) {
                     alert(`رصيدك غير كافٍ! تحتاج إلى ${currentCost} SINU.`);
                     return;
                 }
+
                         try {
-            // 1. عنوان عقد توكن SINU وعنوان عقد الشات الحالي
-            const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; // ضع عنوان عقد توكن SINU هنا مكان هذه العبارة
-            const chatContractAddress = "0x690192AEeE16c40f6f7d0CA30BAA1B0884259068";
-            
-            // الـ ABI المصغر المطلوب لفحص الصلاحية والموافقة
-            const erc20ABI = [
-                "function allowance(address owner, address spender) view returns (uint256)",
-                "function approve(address spender, uint256 amount) returns (bool)"
-            ];
-            
-            // إنشاء كائن العقد الخاص بالتوكن
-            const sinuContract = new ethers.Contract(sinuTokenAddress, erc20ABI, signer);
-            
-            // تحويل التكلفة الحالية إلى صيغة الـ Wei (18 خانة)
-            const requiredAmount = ethers.utils.parseUnits(currentCost.toString(), 18);
-            
-            // 2. فحص الصلاحية الحالية الممنوحة لعقد الشات
-            const allowance = await sinuContract.allowance(userAddress, chatContractAddress);
-            
-            // إذا كانت الصلاحية أقل من المبلغ المطلوب، نطلب approve
-            if (allowance.lt(requiredAmount)) {
-                alert("يرجى الموافقة على تفعيل صلاحية السحب لعقد الشات أولاً في محفظتك...");
-                const approveTx = await sinuContract.approve(chatContractAddress, ethers.constants.MaxUint256);
-                await approveTx.wait(); // انتظار تأكيد معاملة الصلاحية
-                alert("تمت الموافقة بنجاح! يتم الآن إرسال الرسالة...");
+            // 1. جلب رصيد المستخدم المشحون داخل التطبيق من الـ Firebase
+            const userRef = db.ref(`users/${userAddress}`);
+            const snapshot = await userRef.once('value');
+            let currentBalance = snapshot.val()?.balance || 0;
+
+            if (currentBalance < currentCost) {
+                alert(`رصيدك المشحون غير كافٍ! تحتاج إلى ${currentCost} SINU. يرجى شحن رصيدك من القائمة الجانبية.`);
+                return;
             }
 
-            // 3. استدعاء عقد الشات (تأكد من كتابة البارامترات كاملة كما هي في عقدك الأصلي)
-            const tx = await chatContract.deductForService(userAddress, serviceType);
-            await tx.wait();
-            
-            inAppBalance -= currentCost;
-            updateHeaderDisplay();
+            // 2. الخصم داخلياً من قاعدة البيانات فوراً (مجاناً وبدون محفظة!)
+            currentBalance -= currentCost;
+            await userRef.update({ balance: currentBalance });
+
+            // 3. حفظ الرسالة الخاصة في Firebase لتظهر فوراً
+            const recipient = recipientInput.value.trim();
+            await db.ref("private_messages").push({
+                sender: userAddress,
+                recipient: recipient,
+                content: text,
+                type: serviceType,
+                timestamp: Date.now()
+            });
+
+            // 4. تحديث الرصيد المعروض في الواجهة
+            inAppBalance = currentBalance;
+            if (typeof updateHeaderDisplay === "function") {
+                updateHeaderDisplay();
+            }
 
             displayMessageInUI(serviceType, text, true, userAddress, false);
             if (serviceType === 1) input.value = "";
+
         } catch (e) {
-            console.error("الخطأ الكامل:", e);
-            let actualError = "خطأ غير معروف";
-            if (typeof e === 'string') {
-                actualError = e;
-            } else if (e && typeof e === 'object') {
-                actualError = e.message || 
-                              e.reason || 
-                              (e.data && e.data.message) || 
-                              (e.error && e.error.message) || 
-                              JSON.stringify(e);
-            }
-            alert("فشل تأكيد المعاملة البرمجية:\n" + actualError);
+            console.error("خطأ أثناء الإرسال:", e);
+            alert("حدث خطأ أثناء إرسال الرسالة: " + e.message);
         }
+
 
 
             }
