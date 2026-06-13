@@ -393,54 +393,6 @@
             reader.readAsDataURL(file);
         }
 
-        // --- دالة شحن الرصيد الجديدة ---
-async function depositFunds(amountToDeposit) {
-    try {
-        if (!chatContract) return alert("يرجى ربط المحفظة أولاً");
-
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-
-        const sinuTokenAddress = ethers.utils.getAddress("0x56bB247c424958948B63de291A0C7f45d8651B76");
-
-        const erc20ABI = [
-      0x56bB247c424958948B63de291A0C7f45d8651B76ddress spender) view returns (uint256)",
-            "function approve(address spender, uint256 amount) returns (bool)"
-        ];
-        const sinuContract = new ethers.Contract(sinuTokenAddress, erc20ABI, signer);
-        const amountWei = ethers.utils.parseUnits(amountToDeposit.toString(), 18);
-
-        const allowance = await sinuContract.allowance(userAddress, chatContract.address);
-        if (allowance.lt(amountWei)) {
-            alert("يرجى الموافقة على صلاحية سحب التوكن في محفظتك أولاً...");
-            const approveTx = await sinuContract.approve(chatContract.address, ethers.constants.MaxUint256);
-            await approveTx.wait();
-        }
-
-        alert("يرجى تأكيد معاملة الشحن ودفع الغاز (لمرة واحدة فقط)...");
-        const tx = await chatContract.depositSinu(amountWei);
-        await tx.wait();
-
-        // تحديث الرصيد في قاعدة البيانات Firebase بعد نجاح الشحن على البلوكشين
-        const userRef = db.ref(`users/${userAddress}`);
-        const snapshot = await userRef.once('value');
-        let currentBalance = snapshot.val()?.balance || 0;
-        
-        // إضافة القيمة الجديدة للرصيد القديم
-        currentBalance += parseFloat(amountToDeposit);
-        await userRef.update({ balance: currentBalance });
-        
-        inAppBalance = currentBalance;
-        updateHeaderDisplay();
-
-        alert("🎉 تم شحن رصيدك بنجاح! يمكنك الآن المراسلة مجاناً وبدون غاز.");
-
-    } catch (e) {
-        console.error(e);
-        alert("فشلت عملية الشحن:\n" + (e.message || JSON.stringify(e)));
-    }
-}
-
 
         async function sendMessage(serviceType = 1, mediaData = "") { 
             if (!chatContract) return alert("يرجى ربط محفظتك أولاً عبر زر '🔗 ربط المحفظة' في الأعلى.");
@@ -606,48 +558,37 @@ async function depositFunds(amountToDeposit) {
                 alert("فشل التعديل: خطأ في الصلاحيات.");
             }
         }
-       async function deletePublicMessage(messageId) {
-    if (!confirm("هل أنت متأكد من رغبتك في حذف هذا المنشور نهائياً؟")) return;
+        // ... نهاية دالتك القديمة السابقة في الملف ...
+} 
 
-    try {
-        await db.ref(`public_messages/${messageId}`).remove();
-        alert("تم حذف المنشور بنجاح 🗑️");
-    } catch (err) {
-        console.error(err);
-        alert("فشل التعديل: خطأ في الصلاحيات");
-    }
-}
-
-        function playGame(gameType) {
-            alert(`جاري تجهيز واجهة لعبة [${gameType}] للربط مع العقد الذكي...`);
-        }
-
-        // 1. الدالة المربوطة بالزر في الـ HTML لقرأة القيمة من الحقل
+// 🚀 الدالة الأولى: مستقلة تماماً
 async function handleUIDeposit() {
     const amountInput = document.getElementById("depositAmount");
+    if(!amountInput) return;
     const amount = amountInput.value.trim();
 
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
         alert("يرجى إدخال كمية صحيحة من توكنز SINU للشحن.");
         return;
     }
-
-    // استدعاء دالة الشحن الأساسية وتمرير القيمة لها
     await depositFunds(parseFloat(amount));
-    
-    // تفريغ الحقل بعد نجاح العملية
     amountInput.value = "";
 }
 
-// 2. دالة شحن الرصيد الأساسية عبر العقد الذكي وتحديث Firebase
+// 🚀 الدالة الثانية: مستقلة تماماً ومصححة العنوان
 async function depositFunds(amountToDeposit) {
     try {
-        if (!chatContract) return alert("يرجى ربط المحفظة أولاً");
+        // تأكد من أن اسم المتغير هو chatContract لديك في الملف
+        if (typeof chatContract === 'undefined' || !chatContract) {
+            return alert("يرجى ربط المحفظة أولاً");
+        }
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-
-        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
+        
+        // تحويل العنوان بأمان
+        const sinuTokenAddress = ethers.utils.getAddress("0x56bB247c424958948B63de291A0C7f45dB651B76"); 
+        
         const erc20ABI = [
             "function allowance(address owner, address spender) view returns (uint256)",
             "function approve(address spender, uint256 amount) returns (bool)"
@@ -655,38 +596,43 @@ async function depositFunds(amountToDeposit) {
         const sinuContract = new ethers.Contract(sinuTokenAddress, erc20ABI, signer);
         const amountWei = ethers.utils.parseUnits(amountToDeposit.toString(), 18);
 
-        // فحص وتفعيل الصلاحية (Allowance)
-        const allowance = await sinuContract.allowance(userAddress, chatContract.address);
+        // تأكد من أن اسم متغير عنوان المستخدم هو userAddress لديك في الملف
+        const accountForTx = typeof userAddress !== 'undefined' ? userAddress : (await signer.getAddress());
+
+        const allowance = await sinuContract.allowance(accountForTx, chatContract.address);
         if (allowance.lt(amountWei)) {
             alert("يرجى الموافقة على صلاحية سحب التوكن في محفظتك أولاً...");
             const approveTx = await sinuContract.approve(chatContract.address, ethers.constants.MaxUint256);
             await approveTx.wait();
         }
 
-        alert("يرجى تأكيد معاملة الشحن ودفع الغاز في المحفظة (لمرة واحدة فقط)...");
+        alert("يرجى تأكيد معاملة الشحن ودفع الغاز في المحفظة...");
         const tx = await chatContract.depositSinu(amountWei);
         await tx.wait();
 
-        // تحديث الرصيد في قاعدة البيانات Firebase بعد نجاح الشحن على البلوكشين
-        const userRef = db.ref(`users/${userAddress}`);
+        // تحديث الرصيد في Firebase
+        const userRef = db.ref(`users/${accountForTx}`);
         const snapshot = await userRef.once('value');
         let currentBalance = snapshot.val()?.balance || 0;
         
         currentBalance += parseFloat(amountToDeposit);
         await userRef.update({ balance: currentBalance });
         
-        inAppBalance = currentBalance;
+        if (typeof inAppBalance !== 'undefined') inAppBalance = currentBalance;
         if (typeof updateHeaderDisplay === "function") {
             updateHeaderDisplay();
         }
 
-        alert("🎉 تم شحن رصيدك بنجاح! يمكنك الآن المراسلة مجاناً وبدون غاز.");
+        alert("🎉 تم شحن رصيدك بنجاح!");
 
     } catch (e) {
         console.error(e);
         alert("فشلت عملية الشحن:\n" + (e.message || JSON.stringify(e)));
     }
 }
+
+</script>
+
 
     </script>
 </body>
