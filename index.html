@@ -214,9 +214,9 @@
         let inAppBalance = 0;
         let isGroupChat = true; 
 
-        let priceText = 300; 
-        let priceImage = 500;
-        let priceVoice = 1000;
+        let priceText = 30; 
+        let priceImage = 50;
+        let priceVoice = 100;
 
         // فحص الاتصال التلقائي وتظبيط وضع الشاشة هندسياً
         window.addEventListener('load', async () => {
@@ -401,10 +401,10 @@ async function depositFunds(amountToDeposit) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
 
-        const sinuTokenAddress = ethers.utils.getAddress("0x56bB247c424958948B63de291A0C7f45dB651B76");
+        const sinuTokenAddress = ethers.utils.getAddress("0x56bB247c424958948B63de291A0C7f45d8651B76");
 
         const erc20ABI = [
-            "function allowance(address owner, address spender) view returns (uint256)",
+      0x56bB247c424958948B63de291A0C7f45d8651B76ddress spender) view returns (uint256)",
             "function approve(address spender, uint256 amount) returns (bool)"
         ];
         const sinuContract = new ethers.Contract(sinuTokenAddress, erc20ABI, signer);
@@ -647,7 +647,7 @@ async function depositFunds(amountToDeposit) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
 
-        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45dB651B76"; 
+        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
         const erc20ABI = [
             "function allowance(address owner, address spender) view returns (uint256)",
             "function approve(address spender, uint256 amount) returns (bool)"
