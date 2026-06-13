@@ -534,9 +534,26 @@
             try {
                 await db.ref(`public_messages/${messageId}`).remove();
                 alert("تم حذف المنشور بنجاح! 🗑️");
-            } catch (err) {
-                alert("فشل الحذف: خطأ في الصلاحيات.");
-            }
+            } catch (error) {
+    console.error("الخطأ الكامل في الـ Console:", error);
+    
+    // محاولة استخراج الرسالة من مختلف هياكل كائنات Web3/Ethers
+    let actualError = "خطأ غير معروف";
+    
+    if (typeof error === 'string') {
+        actualError = error;
+    } else if (error && typeof error === 'object') {
+        actualError = error.message || 
+                      error.reason || 
+                      (error.data && error.data.message) || 
+                      (error.error && error.error.message) || 
+                      JSON.stringify(error);
+    }
+
+    // إظهار الخطأ الحقيقي في نافذة التنبيه
+    alert("فشل تأكيد المعاملة البرمجية:\n" + actualError);
+}
+
         }
 
         function playGame(gameType) {
