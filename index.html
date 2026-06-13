@@ -607,7 +607,8 @@ async function depositFunds(amountToDeposit) {
         const signer = provider.getSigner();
         
         // العنوان بحروف صغيرة لتفادي الـ Checksum
-        const sinuTokenAddress = "0x56bb247c424958948b63de291a0c7f45db651b76"; 
+        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45dB651B76";
+        
         
         const erc20ABI = [
             "function allowance(address owner, address spender) view returns (uint256)",
