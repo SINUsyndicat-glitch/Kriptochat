@@ -401,7 +401,8 @@ async function depositFunds(amountToDeposit) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
 
-        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45dB651B76"; 
+        const sinuTokenAddress = ethers.utils.getAddress("0x56bB247c424958948B63de291A0C7f45dB651B76");
+
         const erc20ABI = [
             "function allowance(address owner, address spender) view returns (uint256)",
             "function approve(address spender, uint256 amount) returns (bool)"
