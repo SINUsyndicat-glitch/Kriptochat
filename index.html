@@ -562,7 +562,6 @@
             }
         }
         // ... نهاية دالتك القديمة السابقة في الملف ...
- 
 
         // ==========================================
 // 🚀 دالة تشغيل الشحن عند الضغط على الزر
@@ -571,7 +570,7 @@ async function handleUIDeposit() {
     try {
         const amountInput = document.getElementById("depositAmount");
         if (!amountInput) {
-            alert("خطأ: لم يتم العثور على حقل الإدخال depositAmount في الـ HTML");
+            alert("خطأ: لم يتم العثور على خانة الكمية في الـ HTML");
             return;
         }
         
@@ -581,11 +580,10 @@ async function handleUIDeposit() {
             return;
         }
 
-        // استدعاء دالة الشحن وتمرير القيمة
         await depositFunds(parseFloat(amount));
         amountInput.value = "";
     } catch (err) {
-        alert("خطأ في واجهة الشحن: " + err.message);
+        alert("خطأ في الواجهة: " + err.message);
     }
 }
 
@@ -594,7 +592,6 @@ async function handleUIDeposit() {
 // ==========================================
 async function depositFunds(amountToDeposit) {
     try {
-        // التحقق من وجود العقد بأي اسم كان مبرمجاً به لديك
         let activeContract = null;
         if (typeof chatContract !== 'undefined' && chatContract) {
             activeContract = chatContract;
@@ -603,13 +600,13 @@ async function depositFunds(amountToDeposit) {
         }
 
         if (!activeContract) {
-            return alert("يرجى ربط المحفظة أولاً أو التأكد من اتصال التطبيق بالعقد الذكي.");
+            return alert("يرجى ربط المحفظة أولاً!");
         }
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         
-        // استخدام عنوان صغير بالكامل لتفادي خطأ الـ Checksum نهائياً بدون دوال إضافية
+        // العنوان بحروف صغيرة لتفادي الـ Checksum
         const sinuTokenAddress = "0x56bb247c424958948b63de291a0c7f45db651b76"; 
         
         const erc20ABI = [
@@ -620,7 +617,6 @@ async function depositFunds(amountToDeposit) {
         const sinuContract = new ethers.Contract(sinuTokenAddress, erc20ABI, signer);
         const amountWei = ethers.utils.parseUnits(amountToDeposit.toString(), 18);
 
-        // جلب عنوان المستخدم الحالي بأمان
         let activeUserAddress = "";
         if (typeof userAddress !== 'undefined' && userAddress) {
             activeUserAddress = userAddress;
@@ -652,13 +648,13 @@ async function depositFunds(amountToDeposit) {
             
             if (typeof inAppBalance !== 'undefined') inAppBalance = currentBalance;
             
-            alert("🎉 تم شحن رصيدك بنجاح! تم تحديث البيانات.");
+            alert("🎉 تم شحن رصيدك بنجاح!");
             
             if (typeof updateHeaderDisplay === "function") {
                 updateHeaderDisplay();
             }
         } else {
-            alert("🎉 نجحت معاملة البلوكشين ولكن لم يتم التحديث في Firebase لأن دالة db غير معرفة.");
+            alert("🎉 نجحت المعاملة ولكن لم يتم التحديث في Firebase لأن db غير معرفة.");
         }
 
     } catch (e) {
@@ -666,7 +662,6 @@ async function depositFunds(amountToDeposit) {
         alert("فشلت عملية الشحن:\n" + (e.message || JSON.stringify(e)));
     }
 }
-
 
 </script>
 
