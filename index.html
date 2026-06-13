@@ -423,18 +423,45 @@
                     alert(`رصيدك غير كافٍ! تحتاج إلى ${currentCost} SINU.`);
                     return;
                 }
-                
-                try {
-                    const tx = await chatContract.deductForService(userAddress, serviceType);
-                    await tx.wait();
-                    inAppBalance -= currentCost;
-                    updateHeaderDisplay();
-                    
-                    displayMessageInUI(serviceType, text, true, userAddress, false);
-                    if (serviceType === 1) input.value = "";
-                }       catch (e) {
-            console.error("الخطأ الكامل:", e);
+                        try {
+            // 1. عنوان عقد توكن SINU وعنوان عقد الشات الحالي
+            const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; // ضع عنوان عقد توكن SINU هنا مكان هذه العبارة
+            const chatContractAddress = "0x690192AEeE16c40f6f7d0CA30BAA1B0884259068";
             
+            // الـ ABI المصغر المطلوب لفحص الصلاحية والموافقة
+            const erc20ABI = [
+                "function allowance(address owner, address spender) view returns (uint256)",
+                "function approve(address spender, uint256 amount) returns (bool)"
+            ];
+            
+            // إنشاء كائن العقد الخاص بالتوكن
+            const sinuContract = new ethers.Contract(sinuTokenAddress, erc20ABI, signer);
+            
+            // تحويل التكلفة الحالية إلى صيغة الـ Wei (18 خانة)
+            const requiredAmount = ethers.utils.parseUnits(currentCost.toString(), 18);
+            
+            // 2. فحص الصلاحية الحالية الممنوحة لعقد الشات
+            const allowance = await sinuContract.allowance(userAddress, chatContractAddress);
+            
+            // إذا كانت الصلاحية أقل من المبلغ المطلوب، نطلب approve
+            if (allowance.lt(requiredAmount)) {
+                alert("يرجى الموافقة على تفعيل صلاحية السحب لعقد الشات أولاً في محفظتك...");
+                const approveTx = await sinuContract.approve(chatContractAddress, ethers.constants.MaxUint256);
+                await approveTx.wait(); // انتظار تأكيد معاملة الصلاحية
+                alert("تمت الموافقة بنجاح! يتم الآن إرسال الرسالة...");
+            }
+
+            // 3. استدعاء عقد الشات (تأكد من كتابة البارامترات كاملة كما هي في عقدك الأصلي)
+            const tx = await chatContract.deductForService(userAddress, serviceType);
+            await tx.wait();
+            
+            inAppBalance -= currentCost;
+            updateHeaderDisplay();
+
+            displayMessageInUI(serviceType, text, true, userAddress, false);
+            if (serviceType === 1) input.value = "";
+        } catch (e) {
+            console.error("الخطأ الكامل:", e);
             let actualError = "خطأ غير معروف";
             if (typeof e === 'string') {
                 actualError = e;
@@ -445,9 +472,9 @@
                               (e.error && e.error.message) || 
                               JSON.stringify(e);
             }
-
             alert("فشل تأكيد المعاملة البرمجية:\n" + actualError);
         }
+
 
             }
         }
