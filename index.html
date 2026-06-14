@@ -564,13 +564,41 @@
         // ... نهاية دالتك القديمة السابقة في الملف ...
 
         // ==========================================
-// 🚀 دالة تشغيل الشحن عند الضغط على الزر
+// 🚀 1. دالة تحديث واجهة الرصيد والملف الشخصي
+// ==========================================
+async function updateHeaderDisplay() {
+    try {
+        let activeUserAddress = typeof userAddress !== 'undefined' ? userAddress : null;
+        if (!activeUserAddress && typeof window.ethereum !== 'undefined') {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const accounts = await provider.listAccounts();
+            if (accounts.length > 0) activeUserAddress = accounts[0];
+        }
+
+        if (!activeUserAddress) return;
+
+        // قراءة الرصيد من Firebase بناءً على هوية الحساب
+        const snapshot = await db.ref(`users/${activeUserAddress.toLowerCase()}/balance`).once('value');
+        const currentBalance = snapshot.val() || 0;
+
+        // تحديث نص الرصيد الأخضر في الواجهة
+        const balanceDisplay = document.getElementById("balanceDisplay") || document.querySelector(".Mrasla-display"); 
+        if (balanceDisplay) {
+            balanceDisplay.innerHTML = `رصيدك 🔒: <span style="color: #00ffcc;">SINU ${currentBalance}</span>`;
+        }
+    } catch (err) {
+        console.log("تنبيه الواجهة:", err.message);
+    }
+}
+
+// ==========================================
+// 🚀 2. دالة تشغيل الشحن عند ضغط الزر الأخضر
 // ==========================================
 async function handleUIDeposit() {
     try {
-        const amountInput = document.getElementById("depositAmount");
+        const amountInput = document.getElementById("depositAmount") || document.querySelector("input[type='number']");
         if (!amountInput) {
-            alert("خطأ: لم يتم العثور على خانة الكمية في الـ HTML");
+            alert("خطأ: لم يتم العثور على حقل إدخال الكمية في الـ HTML");
             return;
         }
         
@@ -588,27 +616,21 @@ async function handleUIDeposit() {
 }
 
 // ==========================================
-// 🚀 دالة الشحن الأساسية المحدثة والمحمية
+// 🚀 3. دالة الشحن الأساسية الخالية من أخطاء الـ Checksum
 // ==========================================
 async function depositFunds(amountToDeposit) {
     try {
-        let activeContract = null;
-        if (typeof chatContract !== 'undefined' && chatContract) {
-            activeContract = chatContract;
-        } else if (typeof contract !== 'undefined' && contract) {
-            activeContract = contract;
-        }
-
+        let activeContract = typeof chatContract !== 'undefined' ? chatContract : (typeof contract !== 'undefined' ? contract : null);
         if (!activeContract) {
-            return alert("يرجى ربط المحفظة أولاً!");
+            return alert("يرجى ربط المحفظة أولاً للتأكد من الاتصال بالعقد الذكي.");
         }
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         
-        // العنوان بحروف صغيرة لتفادي الـ Checksum
-        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45dB651B76";
-        
+        // 🛡️ حل جذري لـ bad address checksum: تمرير العنوان بأحرف صغيرة واستخدام نظام تحويل آمن داخل المكتبة
+        const rawTokenAddress = "0x56bB247c424958948B63de291A0C7f45dB651B76";
+        const sinuTokenAddress = ethers.utils.getAddress(rawTokenAddress); 
         
         const erc20ABI = [
             "function allowance(address owner, address spender) view returns (uint256)",
@@ -618,15 +640,9 @@ async function depositFunds(amountToDeposit) {
         const sinuContract = new ethers.Contract(sinuTokenAddress, erc20ABI, signer);
         const amountWei = ethers.utils.parseUnits(amountToDeposit.toString(), 18);
 
-        let activeUserAddress = "";
-        if (typeof userAddress !== 'undefined' && userAddress) {
-            activeUserAddress = userAddress;
-        } else if (typeof currentAccount !== 'undefined' && currentAccount) {
-            activeUserAddress = currentAccount;
-        } else {
-            activeUserAddress = await signer.getAddress();
-        }
+        const activeUserAddress = await signer.getAddress();
 
+        // فحص الصلاحية الـ Allowance
         const allowance = await sinuContract.allowance(activeUserAddress, activeContract.address);
         if (allowance.lt(amountWei)) {
             alert("يرجى الموافقة على صلاحية سحب التوكن في محفظتك أولاً...");
@@ -634,35 +650,33 @@ async function depositFunds(amountToDeposit) {
             await approveTx.wait();
         }
 
-        alert("يرجى تأكيد معاملة الشحن ودفع الغاز في المحفظة...");
+        alert("يرجى تأكيد معاملة الشحن في المحفظة ودفع الغاز...");
         const tx = await activeContract.depositSinu(amountWei);
         await tx.wait();
 
-        // تحديث الرصيد في قاعدة البيانات Firebase
+        // 📝 تحديث الرصيد في Firebase بربطه بـ العنوان الصغير الموحد تمهيداً لنظام الحسابات
         if (typeof db !== 'undefined') {
-            const userRef = db.ref(`users/${activeUserAddress}`);
+            const userKey = activeUserAddress.toLowerCase();
+            const userRef = db.ref(`users/${userKey}`);
             const snapshot = await userRef.once('value');
             let currentBalance = snapshot.val()?.balance || 0;
             
             currentBalance += parseFloat(amountToDeposit);
-            await userRef.update({ balance: currentBalance });
+            await userRef.update({ 
+                balance: currentBalance,
+                lastUpdated: new Date().getTime()
+            });
             
-            if (typeof inAppBalance !== 'undefined') inAppBalance = currentBalance;
-            
-            alert("🎉 تم شحن رصيدك بنجاح!");
-            
-            if (typeof updateHeaderDisplay === "function") {
-                updateHeaderDisplay();
-            }
-        } else {
-            alert("🎉 نجحت المعاملة ولكن لم يتم التحديث في Firebase لأن db غير معرفة.");
+            alert(`🎉 تم شحن حسابك بنجاح! رصيدك الحالي في التطبيق: SINU ${currentBalance}`);
+            updateHeaderDisplay();
         }
 
     } catch (e) {
         console.error(e);
-        alert("فشلت عملية الشحن:\n" + (e.message || JSON.stringify(e)));
+        alert("فشلت عملية الشحن:\n" + (e.message || "تأكد من اختيار شبكة Base في محفظتك"));
     }
 }
+
 
 </script>
 
