@@ -3,186 +3,1293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CryptoChat & Games - التطبيق الرسمي</title>
+    <title>SINU Social Network - Ultimate Web3 Platform</title>
+    
+    <!-- أدوات فحص وتصحيح الأخطاء للموبايل Eruda (مثالي لبيئة Termux و TrebEdit) -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
+    <script>eruda.init();</script>
 
-    <!-- ethers.js للمحفظة والعقد الذكي -->
+    <!-- المكتبات الحزمية الكاملة للبلوكشين وقاعدة البيانات الفورية -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-    <!-- مكتبات Firebase للقسم العام السريع والمجاني -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
+    <!-- مكتبة الأيقونات الفاخرة FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { background-color: #0b0e11; color: #eaecef; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        
-        /* شاشة الدخول المبدئية */
-        .login-container { text-align: center; background: #151a21; padding: 40px 30px; border-radius: 16px; border: 1px solid #f3ba2f; max-width: 400px; width: 90%; display: block; }
-        .logo { font-size: 2.5rem; font-weight: bold; color: #f3ba2f; margin-bottom: 10px; }
-        .tagline { color: #90baee; font-size: 0.95rem; margin-bottom: 30px; }
-        .btn-connect { background-color: #f3ba2f; color: #000000; border: none; padding: 14px 28px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.3s; }
-        .btn-connect:hover { background-color: #fdd05b; }
-        
-        /* الهيكل الأساسي للتطبيق */
-        .chat-container { display: none; width: 100%; height: 100vh; grid-template-columns: 320px 1fr; }
-        .sidebar { background-color: #151a21; border-left: 1px solid #212833; display: flex; flex-direction: column; overflow-y: auto; }
-        .sidebar-header { padding: 20px; background-color: #1e2530; font-weight: bold; border-bottom: 1px solid #212833; color: #f3ba2f; text-align: center; }
-        .wallet-list { list-style: none; }
-        .wallet-item { padding: 15px 20px; border-bottom: 1px solid #1e2530; font-size: 0.85rem; color: #ffffff; text-align: center; font-weight: bold; }
-        
-        .sidebar-games-box { padding: 12px; background: #1e2530; border-bottom: 1px solid #212833; display: flex; flex-direction: column; gap: 8px; }
-        .sidebar-games-box label { font-size: 0.85rem; color: #f3ba2f; text-align: center; font-weight: bold; margin-bottom: 2px; }
-        .btn-game { background-color: #212833; color: #ffffff; border: 1px solid #4f5d73; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: bold; transition: 0.2s; text-align: center; }
-        .btn-game:hover { background-color: #2b3542; border-color: #f3ba2f; color: #f3ba2f; }
+        /* ==========================================================================
+           1. المتغيرات والتصميم الجمالي الداكن الأساسي (Design System & Theme)
+           ========================================================================== */
+        :root {
+            --bg-main: #080b0e;
+            --bg-card: #11161d;
+            --bg-hover: #19202a;
+            --bg-input: #1c242f;
+            --border-color: #263141;
+            --primary: #f3ba2f;
+            --primary-hover: #fdd05b;
+            --success: #00ff88;
+            --success-dark: #00bc62;
+            --danger: #ff3b30;
+            --danger-hover: #ff453a;
+            --private-color: #ff007a;
+            --text-main: #f5f7fa;
+            --text-muted: #848e9c;
+            --panel-width-left: 350px;
+            --panel-width-right: 360px;
+        }
 
-        .sidebar-deposit-box { padding: 15px; background: #1e2530; border-top: 1px solid #212833; display: flex; flex-direction: column; gap: 10px; }
-        .sidebar-deposit-box label { font-size: 0.85rem; color: #00ff88; text-align: center; font-weight: bold; }
-        .sidebar-deposit-box input { background: #0b0e11; border: 1px solid #2b3542; padding: 10px; border-radius: 6px; color: white; text-align: center; outline: none; font-size: 1rem; }
-        .sidebar-deposit-box button { background: linear-gradient(135deg, #00ff88 0%, #00bc62 100%); color: black; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
-        
-        .btn-buy-sinu { background: linear-gradient(135deg, #ff007a 0%, #7928ca 100%); color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 0.95rem; text-align: center; transition: 0.2s; text-decoration: none; display: block; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        .main-chat { display: flex; flex-direction: column; background-color: #0b0e11; width: 100%; height: 100%; overflow: hidden; }
-        
-        .navigation-tabs { display: flex; background: #151a21; border-bottom: 1px solid #212833; }
-        .tab-btn { flex: 1; padding: 18px; background: none; border: none; color: #b7bdc6; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; font-size: 0.95rem; }
-        .tab-btn.active { color: #f3ba2f; background: #1e2530; border-bottom: 4px solid #f3ba2f; }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
 
-        .chat-header { padding: 12px 20px; background-color: #151a21; border-bottom: 1px solid #212833; font-size: 0.9rem; color: #ffffff; line-height: 1.5; }
-        .messages-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        
-        .message { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 5px; line-height: 1.4; position: relative; }
-        .message.sent { background-color: #f3ba2f; color: #000000; align-self: flex-start; border-top-right-radius: 0; }
-        .message.received { background-color: #1e2530; color: #eaecef; align-self: flex-end; border-top-left-radius: 0; }
-        
-        .input-area-wrapper { background-color: #151a21; display: flex; flex-direction: column; padding: 12px 15px; gap: 8px; border-top: 1px solid #212833; }
-        .recipient-row { display: none; align-items: center; gap: 10px; background: #1e2530; padding: 10px 12px; border-radius: 6px; border: 1px solid #2b3542; }
-        .recipient-row label { font-size: 0.85rem; color: #f3ba2f; white-space: nowrap; font-weight: bold; }
-        .recipient-row input { flex: 1; background-color: #0b0e11; border: 1px solid #2b3542; padding: 8px 12px; border-radius: 4px; color: #ffffff; font-size: 0.85rem; outline: none; }
-        
-        .input-area { display: flex; gap: 8px; width: 100%; align-items: center; }
-        .input-area input { flex: 1; background-color: #212833; border: 1px solid #2b3542; padding: 12px; border-radius: 8px; color: #ffffff; outline: none; font-size: 0.95rem; }
-        
-        .media-actions { display: flex; gap: 5px; }
-        .btn-media { background-color: #2b3542; color: #ffffff; border: 1px solid #4f5d73; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; position: relative; width: 42px; height: 42px; }
-        .btn-media input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; top: 0; left: 0; }
-        
-        .btn-send { background-color: #f3ba2f; color: #000000; border: none; padding: 0 20px; height: 42px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
+        /* سكرول بار احترافي وناعم ومتناسق */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
 
-        /* 📱 تعديل استجابة الموبايل: إظهار الأزرار أفقياً بنجاح وإضافة زر الربط والاسم */
+        /* ==========================================================================
+           2. شاشات الحساب والتوثيق والمصادقة المتقدمة (Auth System Layout)
+           ========================================================================== */
+        .auth-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at center, #161f2c 0%, #06080b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .auth-card-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 45px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            display: none;
+            flex-direction: column;
+            gap: 22px;
+            animation: fadeInCard 0.4s ease-out;
+        }
+
+        .auth-card-panel.active {
+            display: flex;
+        }
+
+        @keyframes fadeInCard {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand-title-box {
+            text-align: center;
+        }
+
+        .brand-title-box h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-shadow: 0 0 15px rgba(243, 186, 47, 0.25);
+            letter-spacing: -0.5px;
+        }
+
+        .brand-title-box p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        .auth-nav-tabs {
+            display: flex;
+            background: var(--bg-main);
+            padding: 6px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        .auth-tab-trigger {
+            flex: 1;
+            padding: 14px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.25s ease;
+            font-size: 0.95rem;
+        }
+
+        .auth-tab-trigger.active {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .input-wrapper-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-wrapper-field label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .input-wrapper-field input, .input-wrapper-field textarea {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            padding: 14px 18px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .input-wrapper-field input:focus, .input-wrapper-field textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(243, 186, 47, 0.15);
+        }
+
+        .avatar-uploader-zone {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: var(--bg-main);
+            padding: 18px;
+            border-radius: 14px;
+            border: 1px dashed var(--border-color);
+            margin: 5px 0;
+        }
+
+        .avatar-display-circle {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            background: var(--bg-input);
+            border: 2px solid var(--primary);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .avatar-display-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-display-circle i {
+            font-size: 2rem;
+            color: var(--text-muted);
+        }
+
+        .upload-action-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            transition: 0.2s;
+        }
+
+        .upload-action-btn:hover {
+            border-color: var(--text-muted);
+        }
+
+        .upload-action-btn input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .btn-auth-action-submit {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(243, 186, 47, 0.2);
+        }
+
+        .btn-auth-action-submit:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .auth-alternative-footer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .auth-alternative-footer span {
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        /* ==========================================================================
+           3. تقسيم الواجهة والشبكة العامة للتطبيق (Core Grid Layout)
+           ========================================================================== */
+        .app-layout-grid {
+            display: none; 
+            width: 100vw;
+            height: 100vh;
+            grid-template-columns: var(--panel-width-left) 1fr var(--panel-width-right);
+            position: relative;
+        }
+
+        /* اللوحات والشرائط الجانبية */
+        .panel-sidebar-left {
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 24px;
+            gap: 25px;
+        }
+
+        .panel-sidebar-right {
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .panel-center-feed {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-main);
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* ==========================================================================
+           4. كروت الملف الشخصي والمحفظة ومعاملات الفواتير (Cards & Billing Profiles)
+           ========================================================================== */
+        .profile-summary-box {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+        }
+
+        .profile-summary-box img {
+            width: 95px;
+            height: 95px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            object-fit: cover;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        }
+
+        .profile-summary-box h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .profile-summary-box p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 10px;
+            width: 100%;
+            word-break: break-word;
+        }
+
+        .wallet-billing-box {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .section-mini-heading {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .crypto-address-tag {
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            color: var(--primary);
+            text-align: center;
+            word-break: break-all;
+            border: 1px solid rgba(243, 186, 47, 0.08);
+        }
+
+        .balance-counter-pill {
+            background: linear-gradient(135deg, rgba(0,255,136,0.08) 0%, rgba(0,188,98,0.08) 100%);
+            border: 1px solid var(--success);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .balance-counter-pill .value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--success);
+        }
+
+        .balance-counter-pill .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .billing-input-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .billing-input-wrapper input {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            font-size: 1.05rem;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .btn-blockchain-deposit {
+            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+            color: #000;
+            border: none;
+            padding: 14px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.15);
+        }
+
+        .btn-blockchain-deposit:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .uniswap-gateway-btn {
+            background: linear-gradient(135deg, #ff007a 0%, #7928ca 100%);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .uniswap-gateway-btn:hover {
+            opacity: 0.9;
+        }
+
+        .history-transactions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            background: var(--bg-main);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tx-history-item {
+            font-size: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        /* ==========================================================================
+           5. تبويبات التنقل العلوية وشريط حالة الغرف (Navigation Tabs & Header Status)
+           ========================================================================== */
+        .feed-navigation-bar {
+            display: flex;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            width: 100%;
+        }
+
+        .feed-tab-btn {
+            flex: 1;
+            padding: 22px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: center;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .feed-tab-btn.active {
+            color: var(--primary);
+            background: var(--bg-hover);
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .feed-tab-btn#triggerPrivateTab.active {
+            color: var(--private-color);
+            border-bottom-color: var(--private-color);
+        }
+
+        .room-status-indicator-bar {
+            padding: 16px 24px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ==========================================================================
+           6. مساحة عرض الرسائل والمنشورات والوسائط (Post & Message Render System)
+           ========================================================================== */
+        .feed-scroll-container {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            background: var(--bg-main);
+        }
+
+        .render-post-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+            animation: slideUpPost 0.3s ease-out;
+        }
+
+        @keyframes slideUpPost {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .post-author-details {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .post-author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+
+        .post-author-meta-text {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .post-author-username {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .post-time-stamp {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .post-privacy-badge {
+            font-size: 0.7rem;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .badge-style-public { background: rgba(0, 255, 136, 0.1); color: var(--success); }
+        .badge-style-private { background: rgba(255, 0, 122, 0.1); color: var(--private-color); }
+
+        .post-body-content-text {
+            font-size: 0.98rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+
+        /* حاويات وسائط المنشورات الفاخرة */
+        .media-render-img {
+            max-width: 100%;
+            max-height: 380px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-top: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .media-render-video {
+            width: 100%;
+            max-height: 380px;
+            border-radius: 12px;
+            margin-top: 4px;
+            outline: none;
+            background: #000;
+            border: 1px solid var(--border-color);
+        }
+
+        /* مشغل مسجل الملاحظات الصوتية المخصص */
+        .audio-player-custom-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--bg-input);
+            padding: 14px;
+            border-radius: 12px;
+            margin-top: 4px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .audio-control-toggle-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+
+        .audio-control-toggle-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .audio-timeline-track {
+            flex: 1;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .audio-timeline-progress-fill {
+            position: absolute;
+            top: 0; left: 0; bottom: 0; width: 0%;
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .audio-timer-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        .post-action-controls-row {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            padding-top: 12px;
+        }
+
+        .post-control-interactive-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+
+        .post-control-interactive-btn:hover { color: var(--primary); }
+        .post-control-interactive-btn.delete-color:hover { color: var(--danger); }
+
+        /* ==========================================================================
+           7. شريط وحزمة الإدخال السفلية (Advanced Input Toolbar Management)
+           ========================================================================== */
+        .bottom-input-panel-wrapper {
+            background-color: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .private-recipient-selector-row {
+            display: none; 
+            align-items: center;
+            gap: 14px;
+            background: var(--bg-main);
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .private-recipient-selector-row label {
+            font-size: 0.85rem;
+            color: var(--private-color);
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .private-recipient-selector-row input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .toolbar-main-action-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .text-input-field-core {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            padding: 15px 20px;
+            border-radius: 14px;
+            color: #fff;
+            outline: none;
+            font-size: 0.98rem;
+            transition: all 0.3s ease;
+        }
+
+        .text-input-field-core:focus {
+            border-color: var(--primary);
+        }
+
+        .media-attachments-buttons-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .attachment-trigger-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .attachment-trigger-btn:hover {
+            background: var(--bg-hover);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .attachment-trigger-btn input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* حالة التسجيل الصوتي النشط */
+        .attachment-trigger-btn.voice-recording-pulse-active {
+            background: var(--danger);
+            color: #fff !important;
+            border-color: var(--danger);
+            animation: pulseRecordMic 1.4s infinite;
+        }
+
+        @keyframes pulseRecordMic {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); }
+            70% { transform: scale(1.04); box-shadow: 0 0 0 12px rgba(255, 59, 48, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+
+        .btn-core-submit-send {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            height: 48px;
+            padding: 0 26px;
+            border-radius: 14px;
+            font-weight: bold;
+            font-size: 0.98rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-core-submit-send:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        /* ==========================================================================
+           8. شريط ألعاب التوقعات، وعجلة الحظ، وقائمة الأعضاء (Widgets & Gamification)
+           ========================================================================== */
+        .sidebar-panel-section-title {
+            padding: 16px 20px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+            letter-spacing: 0.6px;
+        }
+
+        .active-members-vertical-box {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .member-list-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.01);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .member-list-item-row:hover {
+            background: var(--bg-hover);
+        }
+
+        .member-profile-meta-side {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .member-avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+        }
+
+        .member-name-text {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .member-status-online-dot {
+            font-size: 0.75rem;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .games-interactive-container {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* تصميم كرت توقعات مباريات كأس العالم والألعاب الرياضية */
+        .game-widget-card {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .game-widget-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .match-row-prediction {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-input);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        .match-team-name {
+            font-weight: 600;
+        }
+
+        .match-vs-pill {
+            background: var(--border-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .btn-submit-prediction-action {
+            background: var(--border-color);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .btn-submit-prediction-action:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .wheel-game-box {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-spin-wheel-trigger {
+            background: linear-gradient(135deg, var(--private-color) 0%, #7928ca 100%);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* ==========================================================================
+           9. التجاوب الكامل والشاشات والموبايل (Advanced Responsive Layout Specs)
+           ========================================================================== */
+        @media (max-width: 1100px) {
+            .app-layout-grid {
+                grid-template-columns: 260px 1fr;
+            }
+            .panel-sidebar-left {
+                display: none; 
+            }
+        }
+
         @media (max-width: 768px) {
-            .chat-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
-            
-            .sidebar { 
-                display: flex !important; 
-                flex-direction: row !important; 
-                width: 100% !important; 
-                height: auto !important; 
-                max-height: 60px;
-                border-left: none; 
-                border-bottom: 2px solid #212833;
+            .app-layout-grid {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .panel-sidebar-right {
+                display: flex !important;
+                flex-direction: row !important;
+                width: 100% !important;
+                height: 65px !important;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
                 overflow-x: auto !important;
                 overflow-y: hidden !important;
                 white-space: nowrap;
-                padding: 6px 10px;
-                gap: 10px;
-                background-color: #151a21;
+                padding: 6px;
                 align-items: center;
+                gap: 12px;
                 z-index: 999;
             }
-            .sidebar-header, .wallet-list { display: none !important; } 
-            
-            /* أزرار مخصصة للهاتف تظهر في بداية الشريط */
-            .mobile-wallet-btn { display: inline-block !important; background-color: #f3ba2f; color: black; border: none; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 6px; height: 36px; cursor: pointer; white-space: nowrap; }
-            .mobile-wallet-label { display: none; color: #00ff88; font-size: 0.8rem; font-weight: bold; padding: 6px; background: #212833; border-radius: 6px; height: 36px; line-height: 24px; border: 1px solid #00ff88; }
 
-            .sidebar-games-box { flex-direction: row !important; padding: 0; border-bottom: none; gap: 6px; background: transparent; }
-            .sidebar-games-box label { display: none !important; }
-            
-            .sidebar-deposit-box { flex-direction: row !important; padding: 0; border-top: none; gap: 6px; background: transparent; }
-            .sidebar-deposit-box label { display: none !important; }
-            
-            .sidebar-deposit-box input { width: 70px !important; padding: 6px !important; font-size: 0.85rem; height: 36px; }
-            .sidebar-deposit-box button { padding: 6px 12px !important; font-size: 0.8rem; height: 36px; white-space: nowrap; }
-            .btn-buy-sinu { padding: 6px 12px !important; font-size: 0.8rem; height: 36px; line-height: 24px; white-space: nowrap; }
-            .btn-game { padding: 6px 12px !important; font-size: 0.8rem; height: 36px; white-space: nowrap; }
-            
-            .main-chat { flex: 1; height: calc(100vh - 60px); }
+            .sidebar-panel-section-title, .active-members-vertical-box {
+                display: none !important;
+            }
+
+            .games-interactive-container {
+                display: flex !important;
+                flex-direction: row !important;
+                padding: 0 !important;
+                gap: 8px;
+                width: 100%;
+            }
+
+            .game-widget-card, .wheel-game-box {
+                padding: 6px 12px !important;
+                font-size: 0.8rem !important;
+                height: 45px;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: center !important;
+                white-space: nowrap;
+            }
+
+            .match-row-prediction, .btn-submit-prediction-action, .btn-spin-wheel-trigger {
+                display: none !important;
+            }
+
+            .panel-center-feed {
+                flex: 1;
+                height: calc(100vh - 65px);
+            }
+
+            .auth-card-panel {
+                padding: 24px;
+            }
         }
-
-        /* إخفاء أزرار الموبايل الافتراضية على الكمبيوتر */
-        .mobile-wallet-btn, .mobile-wallet-label { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- تم تعديل المنطق البرمجي: إذا دخل المستخدم مباشرة، لن تعيقه شاشة القفل وتظهر واجهة الشات فوراً -->
-    <div class="login-container" id="loginScreen" style="display: none;">
-        <div class="logo">CryptoChat</div>
-        <div class="tagline">تراسل يدعمه عقد عملة SINU وقاعدة بيانات تتيح تعديل وحذف منشوراتك العامة</div>
-        <button class="btn-connect" onclick="connectWallet()">ربط المحفظة الحقيقية</button>
-    </div>
-
-    <!-- واجهة التطبيق الرئيسية تعمل مباشرة -->
-    <div class="chat-container" id="chatScreen" style="display: flex;">
-        <div class="sidebar">
-            <!-- أزرار المحفظة الذكية الخاصة بالموبايل تظهر كأول عنصر الآن -->
-            <button class="mobile-wallet-btn" id="mobileWalletBtn" onclick="connectWallet()">🔗 ربط المحفظة</button>
-            <div class="mobile-wallet-label" id="mobileWalletLabel">0x...</div>
-
-            <div class="sidebar-header">المحفظة النشطة</div>
-            <ul class="wallet-list">
-                <li class="wallet-item" id="activeWalletLabel">لم يتم الربط ❌</li>
-            </ul>
+    <!-- ==========================================================================
+       أولاً: حاوية وكرت التوثيق والمصادقة (Authentication Backdrop Structure)
+       ========================================================================== -->
+    <div class="auth-backdrop" id="coreAuthBackdrop">
+        
+        <div class="auth-card-panel active" id="authInterfaceCard">
+            <div class="brand-title-box">
+                <h1>SINU Social</h1>
+                <p id="authDynamicSubtitleText">قم بتسجيل الدخول الفوري عبر بريدك الإلكتروني للوصول إلى شبكة المنشورات والمراسلات الخاصة اللامركزية</p>
+            </div>
             
-            <div class="sidebar-deposit-box">
-                <input type="number" id="depositAmount" placeholder="الكمية" min="1" value="100">
-                <button onclick="handleUIDeposit()">تعبئة الرصيد 🚀</button>
-                
-                <a href="https://app.uniswap.org/#/swap?outputCurrency=0x56bB247c424958948B63de291A0C7f45d8651B76" target="_blank" class="btn-buy-sinu">
-                    💳 شراء SINU
-                </a>
+            <div class="auth-nav-tabs">
+                <button class="auth-tab-trigger active" id="tabModeLogin" onclick="toggleAuthPanelMode('login')">تسجيل دخول</button>
+                <button class="auth-tab-trigger" id="tabModeRegister" onclick="toggleAuthPanelMode('register')">إنشاء حساب شخصي</button>
             </div>
 
-            <div class="sidebar-games-box">
-                <button class="btn-game" onclick="playGame('luck')">🎰 الحظ (قريباً)</button>
-                <button class="btn-game" onclick="playGame('prediction')">📈 التوقعات</button>
-                <button class="btn-game" onclick="playGame('mafia')">🕵️‍♂️ مافيا</button>
+            <!-- الحقول التفاعلية لقاعدة البيانات -->
+            <div class="input-wrapper-field" id="wrapperFieldUsername" style="display: none;">
+                <label><i class="fa-solid fa-user-astronaut"></i> اسم المستخدم الحصري (اللقب العام)</label>
+                <input type="text" id="inputAuthUsername" placeholder="مثال: ameen_sinu">
+            </div>
+
+            <div class="input-wrapper-field">
+                <label><i class="fa-solid fa-envelope"></i> البريد الإلكتروني</label>
+                <input type="email" id="inputAuthEmail" placeholder="yourname@domain.com">
+            </div>
+
+            <div class="input-wrapper-field">
+                <label><i class="fa-solid fa-shield-halved"></i> كلمة المرور الآمنة</label>
+                <input type="password" id="inputAuthPassword" placeholder="••••••••••••">
+            </div>
+
+            <!-- الملف الشخصي الكامل (يظهر في وضع التسجيل فقط) -->
+            <div class="input-wrapper-field" id="wrapperFieldProfileData" style="display: none;">
+                <label><i class="fa-solid fa-feather"></i> نبذة وصفية قصيرة (Bio)</label>
+                <textarea id="inputAuthBio" rows="2" placeholder="اكتب نبذة شخصية أو اهتماماتك بالعملات المشفرة هنا..."></textarea>
+                
+                <div class="avatar-uploader-zone">
+                    <div class="avatar-display-circle" id="previewUploaderAvatarContainer">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </div>
+                    <button class="upload-action-btn">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> رفع صورة الحساب
+                        <input type="file" id="fileAuthAvatarPicker" accept="image/*" onchange="processSelectedAvatarImage(this)">
+                    </button>
+                </div>
+            </div>
+
+            <button class="btn-auth-action-submit" id="btnAuthActionExecute" onclick="executeCoreAuthenticationAction()">تأكيد الدخول الآمن 🔑</button>
+            
+            <div class="auth-alternative-footer" id="authFooterLinkRow">
+                ليس لديك حساب مسجل؟ <span onclick="toggleAuthPanelMode('register')">أنشئ حسابك مجاناً الآن</span>
             </div>
         </div>
+    </div>
+
+
+    <!-- ==========================================================================
+       ثانياً: الهيكل والشبكة الرئيسية للتطبيق (Main App Layout Matrix)
+       ========================================================================== -->
+    <div class="app-layout-grid" id="coreAppMainDashboard">
         
-        <div class="main-chat">
-            <div class="navigation-tabs">
-                <button class="tab-btn active" id="tabGroup" onclick="switchChatMode('group')">المنشورات العامة 🌐 (تعديل ومسح)</button>
-                <button class="tab-btn" id="tabPrivate" onclick="switchChatMode('private')">المراسلة الخاصة 🔒 (خصم عبر العقد)</button>
+        <!-- اللوحة الجانبية اليسرى: إدارة الحساب والبلينغ والفواتير -->
+        <div class="panel-sidebar-left">
+            
+            <!-- الملف الشخصي النشط -->
+            <div class="profile-summary-box">
+                <img src="" alt="Avatar" id="uiSidebarAvatarImage">
+                <div id="uiSidebarProfileUsername" class="profile-username-text">جاري المزامنة...</div>
+                <p id="uiSidebarProfileBioText">لا توجد نبذة وصفية محفوظة حالياً لهذا الحساب.</p>
             </div>
 
-            <div class="chat-header" id="chatHeader">المحادثة النشطة | جاري تحميل البيانات...</div>
-            <div class="messages-area" id="messagesArea"></div>
-            
-            <div class="input-area-wrapper">
-                <div class="recipient-row" id="recipientRow">
-                    <label for="recipientAddress">المستلم:</label>
-                    <input type="text" id="recipientAddress" placeholder="أدخل عنوان المحفظة (0x...)">
+            <!-- محفظة بوابة الـ Web3 والشحن بـ SINU -->
+            <div class="wallet-billing-box">
+                <div class="section-mini-heading"><i class="fa-solid fa-coins"></i> الرصيد الداخلي المتوفر</div>
+                <div class="balance-counter-pill">
+                    <div class="value" id="uiBalanceCounterLabel">0</div>
+                    <div class="label">توكن SINU للرسائل والخدمات</div>
                 </div>
+
+                <div class="section-mini-heading"><i class="fa-solid fa-link"></i> عنوان محفظة البلوكشين المتصلة</div>
+                <div class="crypto-address-tag" id="uiConnectedWalletAddressTag">محفظة الويب 3 غير متصلة ❌</div>
+
+                <div class="billing-input-wrapper">
+                    <input type="number" id="inputWeb3SinuDepositAmount" value="1000" min="5">
+                    <button class="btn-blockchain-deposit" onclick="triggerWeb3BlockchainDepositTx()">
+                        <i class="fa-solid fa-wallet"></i> إيداع وتعبئة الرصيد بالـ Web3
+                    </button>
+                </div>
+
+                <a href="https://app.uniswap.org/#/swap?outputCurrency=0x56bB247c424958948B63de291A0C7f45d8651B76" target="_blank" class="uniswap-gateway-btn">
+                    <i class="fa-solid fa-shuffle"></i> تبديل وشراء SINU عبر Uniswap
+                </a>
+
+                <div class="section-mini-heading"><i class="fa-solid fa-clock-history"></i> سجل عمليات التعبئة</div>
+                <div class="history-transactions-list" id="uiTxHistoryRecordsList">
+                    <div class="tx-history-item" style="color:var(--text-muted); justify-content: center;">لا توجد معاملات إيداع سابقة</div>
+                </div>
+            </div>
+
+            <button class="btn-auth-action-submit" style="background:#1c242f; color:#fff; padding:12px; font-size:0.9rem;" onclick="executeSignOutCommand()">
+                <i class="fa-solid fa-power-off"></i> تسجيل خروج آمن
+            </button>
+        </div>
+
+
+        <!-- مساحة التغذية والمنشورات المركزية الشاملة -->
+        <div class="panel-center-feed">
+            
+            <!-- شريط التبويبات العلوي للغرف -->
+            <div class="feed-navigation-bar">
+                <button class="feed-tab-btn active" id="triggerGroupTab" onclick="switchActiveFeedMode('group')">
+                    <i class="fa-solid fa-users-viewfinder"></i> المنشورات العامة (مجانية)
+                </button>
+                <button class="feed-tab-btn" id="triggerPrivateTab" onclick="switchActiveFeedMode('private')">
+                    <i class="fa-solid fa-shield-cat"></i> دردشة خاصة (خصم SINU تلقائي)
+                </button>
+            </div>
+
+            <!-- هيدر الحالة التفصيلي للغرفة -->
+            <div class="room-status-indicator-bar">
+                <div id="uiRoomActiveTitle" style="font-weight: bold; color: #fff;">جاري الاتصال بقاعدة البيانات اللامركزية...</div>
+                <div id="uiRoomPriceSpecifications" style="font-size:0.8rem; color: var(--text-muted);"></div>
+            </div>
+
+            <!-- منطقة التغذية والتدفق الصاعد للمنشورات والرسائل -->
+            <div class="feed-scroll-container" id="uiMainMessagesContainer"></div>
+
+            <!-- شريط صندوق الأدوات السفلي لرفع الصور، الفيديوهات، والصوتيات -->
+            <div class="bottom-input-panel-wrapper">
                 
-                <div class="input-area">
-                    <div class="media-actions">
-                        <button class="btn-media" title="رفع صورة">
-                            🖼️
-                            <input type="file" id="imageUploader" accept="image/*" onchange="handleLocalFileChange(this, 2)">
+                <!-- صف اختيار المستحق للدردشة الخاصة -->
+                <div class="private-recipient-selector-row" id="uiPrivateRecipientSelectorRow">
+                    <label><i class="fa-solid fa-fingerprint"></i> بريد المستلم المستهدف:</label>
+                    <input type="email" id="inputPrivateTargetRecipientEmail" placeholder="أدخل البريد الإلكتروني بدقة لحساب صديقك الموثق...">
+                </div>
+
+                <!-- بار كتابة النص وضخ الأزرار الفورية -->
+                <div class="toolbar-main-action-bar">
+                    
+                    <div class="media-attachments-buttons-group">
+                        <!-- أداة إرفاق صورة شخصية أو ميمز -->
+                        <button class="attachment-trigger-btn" title="إرفاق صورة">
+                            <i class="fa-solid fa-images"></i>
+                            <input type="file" accept="image/*" onchange="handleMediaAttachmentSelection(this, 'image')">
+                        </button>
+                        <!-- أداة إرفاق فيديو -->
+                        <button class="attachment-trigger-btn" title="إرفاق مقطع فيديو">
+                            <i class="fa-solid fa-clapperboard"></i>
+                            <input type="file" accept="video/*" onchange="handleMediaAttachmentSelection(this, 'video')">
+                        </button>
+                        <!-- الميكروفون المطور للتسجيل الصوتي المباشر والخصم الفوري للـ Voice -->
+                        <button class="attachment-trigger-btn" id="uiVoiceMicrophoneTriggerBtn" title="تسجيل ملاحظة صوتية" onclick="handleVoiceRecordingLifecycleToggle()">
+                            <i class="fa-solid fa-microphone-lines"></i>
                         </button>
                     </div>
+
+                    <input type="text" id="inputMainPrimaryTextField" class="text-input-field-core" placeholder="اكتب نص منشورك العام، أو رسالتك الخاصة هنا...">
                     
-                    <input type="text" id="messageInput" placeholder="اكتب رسالة أو منشور هنا...">
-                    <button class="btn-send" onclick="sendMessage(1)">إرسال</button>
+                    <button class="btn-core-submit-send" onclick="submitActiveMessageFromToolbar()">
+                        <span>إرسال</span> <i class="fa-solid fa-paper-plane"></i>
+                    </button>
                 </div>
+            </div>
+        </div>
+
+
+        <!-- اللوحة الجانبية اليمنى: الفهرس، الأعضاء، وأدوات توقعات كأس العالم والألعاب -->
+        <div class="panel-sidebar-right">
+            
+            <!-- ويدجيت لعبة توقعات المباريات والمسابقات الرياضية -->
+            <div class="sidebar-panel-section-title"><i class="fa-solid fa-trophy"></i> توقعات مباريات SINU Web3</div>
+            <div class="games-interactive-container">
+                <div class="game-widget-card">
+                    <div class="game-widget-header"><i class="fa-regular fa-calendar-check"></i> مباراة اليوم المباشرة</div>
+                    <div class="match-row-prediction">
+                        <span class="match-team-name" style="color:var(--primary);">الأرجنتين</span>
+                        <span class="match-vs-pill">VS</span>
+                        <span class="match-team-name">فرنسا</span>
+                    </div>
+                    <button class="btn-submit-prediction-action" onclick="executeAppGameAction('Match Prediction')">توقع الفائز (30 SINU)</button>
+                </div>
+
+                <!-- ويدجيت عجلة الحظ الكريبتو -->
+                <div class="wheel-game-box">
+                    <div class="game-widget-header" style="color:var(--private-color);"><i class="fa-solid fa-circle-radiation"></i> عجلة حظ SINU التفاعلية</div>
+                    <button class="btn-spin-wheel-trigger" onclick="executeAppGameAction('Lucky Wheel')">أدر العجلة وضاعف رصيدك!</button>
+                </div>
+            </div>
+
+            <!-- قائمة الأعضاء والأصدقاء النشطين المتصلين حالياً بالشبكة -->
+            <div class="sidebar-panel-section-title"><i class="fa-solid fa-signal"></i> المتصلون الآن بالشبكة</div>
+            <div class="active-members-vertical-box" id="uiActiveOnlineUsersContainer">
+                <!-- يتم توليد القائمة تلقائياً وديناميكياً من قاعدة البيانات -->
             </div>
         </div>
     </div>
 
+
+    <!-- ==========================================================================
+       ثالثاً: محرك البرمجة الشامل ومنطق الجافا سكريبت (Platform Core Engine Scripts)
+       ========================================================================== -->
     <script>
+        // تكوين حزمة ومفاتيح الاتصال بـ Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAjANzHrD-JEEN_4DVIY705ECcJTvl4lQk",
             authDomain: "kriptochat-bf77a.firebaseapp.com",
@@ -194,493 +1301,750 @@
         };
         
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const coreAuthInstance = firebase.auth();
+        const coreDatabaseInstance = firebase.database();
 
-        const chatContractAddress = "0x690192AEeE16c40f6f7d0CA30BAA1B0884259068"; 
-        const sinuTokenAddress = "0x56bB247c424958948B63de291A0C7f45d8651B76"; 
+        // عناوين عقود توكن وشات SINU على شبكة Base اللامركزية
+        const addressContractChatGateway = "0x690192AEeE16c40f6f7d0CA30BAA1B0884259068"; 
+        const addressContractSinuToken = "0x56bB247c424958948B63de291A0C7f45d8651B76";
 
-        const chatAbi = [
+        const abiChatGatewaySpecs = [
             "function costImage() view returns (uint256)",
             "function costText() view returns (uint256)",
             "function costVoice() view returns (uint256)",
-            "function deductForService(address _user, uint256 _serviceType)",
             "function depositSinu(uint256 _amountWithDecimals)",
             "function getInAppBalance(address _user) view returns (uint256)"
         ];
 
-        const tokenAbi = [
+        const abiSinuTokenSpecs = [
+            "function allowance(address owner, address spender) view returns (uint256)",
             "function approve(address spender, uint256 amount) external returns (bool)",
             "function balanceOf(address account) view returns (uint256)"
         ];
 
-        let provider, signer, chatContract, tokenContract, userAddress;
-        let inAppBalance = 0;
-        let isGroupChat = true; 
+        // متغيرات التحكم وضبط الجلسات التشغيلية للمنصة
+        let currentAuthPanelMode = "login";
+        let activeUserSessionProfile = null;
+        let myCachedProfileDataRecord = null;
+        let isCurrentFeedModeGroup = true; 
+        
+        // مسارات حساب الأرصدة والأسعار لخدمات وقنوات الدردشة الخاصة بـ SINU
+        let localInAppSinuBalance = 0;
+        let rateTextSinuCharge = 30;
+        let rateImageSinuCharge = 50;
+        let rateVideoSinuCharge = 70;
+        let rateVoiceSinuCharge = 100;
 
-        let priceText = 30; 
-        let priceImage = 50;
-        let priceVoice = 100;
+        // متغيرات حزمة الميكروفون والتسجيل الصوتي المدمج
+        let activeMediaRecorderInstance = null;
+        let gatheredAudioBlobChunks = [];
+        let isMicrophoneRecordingRunning = false;
 
-        // فحص الاتصال التلقائي وتظبيط وضع الشاشة هندسياً
-        window.addEventListener('load', async () => {
-            adjustLayout();
-            if (typeof window.ethereum !== 'undefined') {
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts.length > 0) {
-                    connectWallet();
+        // متغيرات ربط الـ Web3 للمحفظة الشاحنة على الموبايل والكمبيوتر
+        let web3EthersProvider, web3EthersSigner, contractInstanceChat, contractInstanceToken;
+
+        // الصورة الرمزية الافتراضية المشفرة للنظام
+        const defaultProfileBase64AvatarUri = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f3ba2f'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 2 4 2zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
+        let base64CapturedAvatarString = defaultProfileBase64AvatarUri;
+
+        // الفحص التلقائي الشامل للجلسة عند بدء تحميل مستند الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            coreAuthInstance.onAuthStateChanged(sessionUser => {
+                if (sessionUser) {
+                    activeUserSessionProfile = sessionUser;
+                    synchronizeUserProfileAndInitializeDashboard();
+                } else {
+                    document.getElementById('coreAuthBackdrop').style.display = 'flex';
+                    document.getElementById('coreAppMainDashboard').style.display = 'none';
                 }
-            }
-            listenToPublicMessages();
-            updateHeaderDisplay();
+            });
+            listenToGlobalPostsFeedChannel();
+            synchronizeActiveOnlineMembersWidget();
         });
 
-        window.addEventListener('resize', adjustLayout);
+        /* ==========================================================================
+           10. منطق المصادقة والتحقق من حسابات الأعضاء (Authentication Management)
+           ========================================================================== */
+        function toggleAuthPanelMode(targetMode) {
+            currentAuthPanelMode = targetMode;
+            const uField = document.getElementById('wrapperFieldUsername');
+            const pField = document.getElementById('wrapperFieldProfileData');
+            const subtitleText = document.getElementById('authDynamicSubtitleText');
+            const submitBtn = document.getElementById('btnAuthActionExecute');
+            const footerRow = document.getElementById('authFooterLinkRow');
 
-        function adjustLayout() {
-            const chatScreen = document.getElementById('chatScreen');
-            if(window.innerWidth > 768) {
-                chatScreen.style.display = 'grid';
+            document.getElementById('tabModeLogin').classList.remove('active');
+            document.getElementById('tabModeRegister').classList.remove('active');
+
+            if (targetMode === 'login') {
+                document.getElementById('tabModeLogin').classList.add('active');
+                uField.style.display = 'none';
+                pField.style.display = 'none';
+                subtitleText.innerText = "قم بتسجيل الدخول الفوري عبر بريدك الإلكتروني للوصول إلى شبكة المنشورات والمراسات الخاصة اللامركزية";
+                submitBtn.innerText = "تأكيد الدخول الآمن 🔑";
+                footerRow.innerHTML = `ليس لديك حساب مسجل؟ <span onclick="toggleAuthPanelMode('register')">أنشئ حسابك مجاناً الآن</span>`;
             } else {
-                chatScreen.style.display = 'flex';
+                document.getElementById('tabModeRegister').classList.add('active');
+                uField.style.display = 'flex';
+                pField.style.display = 'flex';
+                subtitleText.innerText = "أنشئ حسابك اللامركزي الكامل، ارفع صورتك الشخصية واكتب البايو الخاص بك للانضمام إلى جدار ومجتمع ميمز توكن SINU";
+                submitBtn.innerText = "إنشاء وتفعيل الحساب الجديد 🚀";
+                footerRow.innerHTML = `لديك حساب موثق بالفعل؟ <span onclick="toggleAuthPanelMode('login')">تسجيل الدخول من هنا</span>`;
             }
         }
 
-        async function connectWallet() {
-            if (typeof window.ethereum !== 'undefined') {
+        function processSelectedAvatarImage(inputSource) {
+            if (inputSource.files && inputSource.files[0]) {
+                const fileReader = new FileReader();
+                fileReader.onload = function(eventResult) {
+                    base64CapturedAvatarString = eventResult.target.result;
+                    document.getElementById('previewUploaderAvatarContainer').innerHTML = `<img src="${base64CapturedAvatarString}">`;
+                };
+                fileReader.readAsDataURL(inputSource.files[0]);
+            }
+        }
+
+        async function executeCoreAuthenticationAction() {
+            const emailInput = document.getElementById('inputAuthEmail').value.trim();
+            const passwordInput = document.getElementById('inputAuthPassword').value.trim();
+            const usernameInput = document.getElementById('inputAuthUsername').value.trim();
+            const bioInput = document.getElementById('inputAuthBio').value.trim();
+
+            if (!emailInput || !passwordInput) {
+                return alert("خطأ: يرجى كتابة البريد الإلكتروني وكلمة المرور لإتمام العملية!");
+            }
+
+            try {
+                if (currentAuthPanelMode === 'login') {
+                    await coreAuthInstance.signInWithEmailAndPassword(emailInput, passwordInput);
+                } else {
+                    if (!usernameInput) return alert("خطأ: يرجى إدخال اسم مستخدم (لقب عام) لملفك الشخصي الجديد!");
+                    
+                    const resultCredentials = await coreAuthInstance.createUserWithEmailAndPassword(emailInput, passwordInput);
+                    const userUid = resultCredentials.user.uid;
+
+                    // كتابة السجل المرجعي الكامل للملف الشخصي الجديد في الـ Realtime Database
+                    await coreDatabaseInstance.ref(`profiles/${userUid}`).set({
+                        uid: userUid,
+                        username: usernameInput,
+                        email: emailInput,
+                        bio: bioInput || "عضو نشط في شبكة ومجتمع توكن SINU.",
+                        avatar: base64CapturedAvatarString,
+                        balance: 150, // رصيد تأسيسي ترحيبي مجاني لإرسال أولى الرسائل الخاصة
+                        registeredTimestamp: Date.now()
+                    });
+                }
+            } catch (authError) {
+                alert("فشلت عملية التوثيق الآمن: " + authError.message);
+            }
+        }
+
+        async function synchronizeUserProfileAndInitializeDashboard() {
+            if (!activeUserSessionProfile) return;
+            const sessionUid = activeUserSessionProfile.uid;
+
+            coreDatabaseInstance.ref(`profiles/${sessionUid}`).on('value', dbSnapshot => {
+                if (dbSnapshot.exists()) {
+                    myCachedProfileDataRecord = dbSnapshot.val();
+                    localInAppSinuBalance = myCachedProfileDataRecord.balance || 0;
+
+                    // تحديث بيانات لوحة وشريط التحكم الجانبي للمستخدم
+                    document.getElementById('uiSidebarProfileUsername').innerText = myCachedProfileDataRecord.username;
+                    document.getElementById('uiSidebarProfileBioText').innerText = myCachedProfileDataRecord.bio;
+                    document.getElementById('uiSidebarAvatarImage').src = myCachedProfileDataRecord.avatar || defaultProfileBase64AvatarUri;
+                    document.getElementById('uiBalanceCounterLabel').innerText = localInAppSinuBalance;
+
+                    // إخفاء شاشات الدخول وبدء تفعيل واجهة التطبيق كاملة
+                    document.getElementById('coreAuthBackdrop').style.display = 'none';
+                    document.getElementById('coreAppMainDashboard').style.display = 'grid';
+                    
+                    updateRoomDisplayHeaderInformation();
+                    broadcastUserPresenceStatusSignal();
+                    renderBillingTransactionsHistoryRecords();
+                }
+            });
+        }
+
+        function broadcastUserPresenceStatusSignal() {
+            if (!myCachedProfileDataRecord) return;
+            const presenceRef = coreDatabaseInstance.ref(`status/${myCachedProfileDataRecord.uid}`);
+            presenceRef.set({
+                uid: myCachedProfileDataRecord.uid,
+                username: myCachedProfileDataRecord.username,
+                avatar: myCachedProfileDataRecord.avatar,
+                lastSeenTimestamp: Date.now()
+            });
+            presenceRef.onDisconnect().remove();
+        }
+
+        function executeSignOutCommand() {
+            if (myCachedProfileDataRecord) {
+                coreDatabaseInstance.ref(`status/${myCachedProfileDataRecord.uid}`).remove();
+            }
+            coreAuthInstance.signOut();
+        }
+
+        /* ==========================================================================
+           11. محرك التبويبات وتخصيص أسعار الغرف والقنوات (Feed Tabs & Cost Specs)
+           ========================================================================== */
+        function switchActiveFeedMode(targetFeedMode) {
+            isCurrentFeedModeGroup = (targetFeedMode === 'group');
+            const recipientRow = document.getElementById('uiPrivateRecipientSelectorRow');
+            document.getElementById('uiMainMessagesContainer').innerHTML = "";
+
+            document.getElementById('triggerGroupTab').classList.remove('active');
+            document.getElementById('triggerPrivateTab').classList.remove('active');
+
+            if (isCurrentFeedModeGroup) {
+                document.getElementById('triggerGroupTab').classList.add('active');
+                recipientRow.style.display = 'none';
+                listenToGlobalPostsFeedChannel();
+            } else {
+                document.getElementById('triggerPrivateTab').classList.add('active');
+                recipientRow.style.display = 'flex';
+                listenToPrivateChatsFeedChannel();
+            }
+            updateRoomDisplayHeaderInformation();
+        }
+
+        function updateRoomDisplayHeaderInformation() {
+            const titleNode = document.getElementById('uiRoomActiveTitle');
+            const specsNode = document.getElementById('uiRoomPriceSpecifications');
+
+            if (isCurrentFeedModeGroup) {
+                titleNode.innerHTML = `<i class="fa-solid fa-users-viewfinder" style="color:var(--success);"></i> جدار المنشورات والميمز العامة الحرة`;
+                specsNode.innerText = "غرفة عامة ومفتوحة مجاناً | ميزات تعديل وحذف المنشور الخاص بك مفعلة";
+            } else {
+                titleNode.innerHTML = `<i class="fa-solid fa-shield-cat" style="color:var(--private-color);"></i> قناة المراسلة الآمنة المشفرة للرسائل الخاصة`;
+                specsNode.innerHTML = `تكلفة SINU للرسالة: نص <span style="color:#fff; font-weight:bold;">${rateTextSinuCharge}</span> | صورة/فيديو <span style="color:#fff; font-weight:bold;">${rateImageSinuCharge}/${rateVideoSinuCharge}</span> | صوت <span style="color:#fff; font-weight:bold;">${rateVoiceSinuCharge}</span>`;
+            }
+        }
+
+        /* ==========================================================================
+           12. معالجة وتدفق البيانات الفورية من الـ Firebase (Realtime Feed Flow)
+           ========================================================================== */
+        function listenToGlobalPostsFeedChannel() {
+            coreDatabaseInstance.ref("global_posts").off();
+            coreDatabaseInstance.ref("global_posts").on("child_added", addedSnapshot => {
+                if (!isCurrentFeedModeGroup) return;
+                appendPostBlockToInterfaceContainer(addedSnapshot.key, addedSnapshot.val(), true);
+            });
+            coreDatabaseInstance.ref("global_posts").on("child_changed", changedSnapshot => {
+                if (!isCurrentFeedModeGroup) return;
+                modifyPostBlockInInterfaceContainer(changedSnapshot.key, changedSnapshot.val());
+            });
+            coreDatabaseInstance.ref("global_posts").on("child_removed", removedSnapshot => {
+                if (!isCurrentFeedModeGroup) return;
+                removePostBlockFromInterfaceContainer(removedSnapshot.key);
+            });
+        }
+
+        function listenToPrivateChatsFeedChannel() {
+            if (!myCachedProfileDataRecord) return;
+            coreDatabaseInstance.ref("private_chats").off();
+            
+            document.getElementById('uiMainMessagesContainer').innerHTML = `
+                <div style="text-align:center; padding:35px 20px; color:var(--text-muted); font-size:0.88rem; line-height:1.6;">
+                    <i class="fa-solid fa-user-lock" style="font-size:1.8rem; color:var(--private-color); margin-bottom:12px;"></i><br>
+                    أدخل البريد الإلكتروني لصديقك الموثق في حقل "المستلم" العلوي لتشغيل الفلترة الفورية الآمنة للمحادثة بينكما وخصم الـ SINU تلقائياً عند الإرسال.
+                </div>
+            `;
+            
+            coreDatabaseInstance.ref("private_chats").on("child_added", addedSnapshot => {
+                if (isCurrentFeedModeGroup) return;
+                const chatPayload = addedSnapshot.val();
+                if (chatPayload.senderUid === myCachedProfileDataRecord.uid || chatPayload.targetUid === myCachedProfileDataRecord.uid) {
+                    appendPostBlockToInterfaceContainer(addedSnapshot.key, chatPayload, false);
+                }
+            });
+        }
+
+        function synchronizeActiveOnlineMembersWidget() {
+            coreDatabaseInstance.ref("status").on("value", snapshotRecords => {
+                const targetContainer = document.getElementById('uiActiveOnlineUsersContainer');
+                if (!targetContainer) return;
+                targetContainer.innerHTML = "";
+
+                if (snapshotRecords.exists()) {
+                    snapshotRecords.forEach(childNode => {
+                        const memberData = childNode.val();
+                        if (myCachedProfileDataRecord && memberData.uid === myCachedProfileDataRecord.uid) return;
+
+                        const rowItem = document.createElement('div');
+                        rowItem.className = "member-list-item-row";
+                        rowItem.onclick = () => {
+                            switchActiveFeedMode('private');
+                            document.getElementById('inputPrivateTargetRecipientEmail').value = memberData.username + "@mail.com";
+                            alert(`تم تحويلك إلى قنوات الدردشة الخاصة، يرجى كتابة البريد الإلكتروني الكامل لـ ${memberData.username} في الحقل العلوي لبدء إرسال توكن SINU إليه.`);
+                        };
+
+                        rowItem.innerHTML = `
+                            <div class="member-profile-meta-side">
+                                <img src="${memberData.avatar || defaultProfileBase64AvatarUri}" class="member-avatar-img">
+                                <span class="member-name-text">${memberData.username}</span>
+                            </div>
+                            <span class="member-status-online-dot"><i class="fa-solid fa-circle" style="font-size:0.55rem;"></i> متصل</span>
+                        `;
+                        targetContainer.appendChild(rowItem);
+                    });
+                } else {
+                    targetContainer.innerHTML = `<div style="padding:20px; text-align:center; font-size:0.8rem; color:var(--text-muted);">لا يوجد أعضاء متصلون بالشبكة حالياً</div>`;
+                }
+            });
+        }
+
+        /* ==========================================================================
+           13. بناء وتصنيع كروت المنشورات والرسائل في الواجهة (UI Manufacturing Engine)
+           ========================================================================== */
+        function appendPostBlockToInterfaceContainer(postId, postData, isPublicPost) {
+            const scrollContainer = document.getElementById('uiMainMessagesContainer');
+            if (!scrollContainer) return;
+
+            if (document.getElementById(`post-${postId}`)) return;
+
+            const cardNode = document.createElement('div');
+            cardNode.className = "render-post-card";
+            cardNode.id = `post-${postId}`;
+
+            const checkOwnership = myCachedProfileDataRecord ? postData.senderUid === myCachedProfileDataRecord.uid : false;
+
+            let cardHeaderMarkup = `
+                <div class="post-header-row">
+                    <div class="post-author-details">
+                        <img src="${postData.senderAvatar || defaultProfileBase64AvatarUri}" class="post-author-avatar">
+                        <div class="post-author-meta-text">
+                            <span class="post-author-username">${postData.senderName}</span>
+                            <span class="post-time-stamp">${convertTimestampToReadableString(postData.timestamp)}</span>
+                        </div>
+                    </div>
+                    <span class="post-privacy-badge ${isPublicPost ? 'badge-style-public' : 'badge-style-private'}">
+                        ${isPublicPost ? '🌐 منشور عام' : '🔒 رسالة خاصة'}
+                    </span>
+                </div>
+            `;
+
+            let cardBodyMarkup = "";
+            if (postData.msgType === "text") {
+                cardBodyMarkup = `<div class="post-body-content-text">${postData.content}</div>`;
+            } else if (postData.msgType === "image") {
+                cardBodyMarkup = `
+                    ${postData.content ? `<div class="post-body-content-text" style="margin-bottom:10px;">${postData.content}</div>` : ''}
+                    <img src="${postData.mediaUrl}" class="media-render-img">
+                `;
+            } else if (postData.msgType === "video") {
+                cardBodyMarkup = `
+                    ${postData.content ? `<div class="post-body-content-text" style="margin-bottom:10px;">${postData.content}</div>` : ''}
+                    <video src="${postData.mediaUrl}" controls class="media-render-video"></video>
+                `;
+            } else if (postData.msgType === "voice") {
+                cardBodyMarkup = `
+                    <div class="audio-player-custom-row">
+                        <button class="audio-control-toggle-btn" onclick="toggleAudioPlaybackInstance(this, '0x_audio_stream', '${postData.mediaUrl}')">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <div class="audio-timeline-track" onclick="seekAudioPlaybackTimelineTrackPosition(event, this)">
+                            <div class="audio-timeline-progress-fill"></div>
+                        </div>
+                        <span class="audio-timer-label">00:00</span>
+                    </div>
+                `;
+            }
+
+            let cardControlsMarkup = "";
+            if (isPublicPost && checkOwnership) {
+                cardControlsMarkup = `
+                    <div class="post-action-controls-row">
+                        <button class="post-control-interactive-btn" onclick="triggerEditActionForGlobalPostText('${postId}', '${postData.content}')">
+                            <i class="fa-solid fa-square-pen"></i> تعديل النص
+                        </button>
+                        <button class="post-control-interactive-btn delete-color" onclick="triggerDeleteActionForGlobalPost('${postId}')">
+                            <i class="fa-solid fa-trash-arrow-up"></i> حذف نهائي
+                        </button>
+                    </div>
+                `;
+            }
+
+            cardNode.innerHTML = cardHeaderMarkup + cardBodyMarkup + cardControlsMarkup;
+            scrollContainer.appendChild(cardNode);
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }
+
+        function modifyPostBlockInInterfaceContainer(postId, updatedPostData) {
+            const targetedCard = document.getElementById(`post-${postId}`);
+            if (!targetedCard) return;
+            const contentTextNode = targetedCard.querySelector('.post-body-content-text');
+            if (contentTextNode) contentTextNode.innerText = updatedPostData.content;
+        }
+
+        function removePostBlockFromInterfaceContainer(postId) {
+            const targetedCard = document.getElementById(`post-${postId}`);
+            if (targetedCard) targetedCard.remove();
+        }
+
+        function convertTimestampToReadableString(unixTimestamp) {
+            const dateInstance = new Date(unixTimestamp);
+            return dateInstance.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " - " + dateInstance.toLocaleDateString();
+        }
+
+        /* ==========================================================================
+           14. معالجة ورفع وتسجيل المقاطع الصوتية والوسائط (Media & Voice Processing)
+           ========================================================================== */
+        async function handleVoiceRecordingLifecycleToggle() {
+            const triggerBtn = document.getElementById('uiVoiceMicrophoneTriggerBtn');
+            if (!isMicrophoneRecordingRunning) {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    return alert("خطأ: جهازك الحالي أو المتصفح لا يدعم صلاحيات الوصول للميكروفون لتسجيل الصوت!");
+                }
+
                 try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    userAddress = accounts[0];
+                    const audioMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    activeMediaRecorderInstance = new MediaRecorder(audioMediaStream);
+                    gatheredAudioBlobChunks = [];
 
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner();
+                    activeMediaRecorderInstance.ondataavailable = dataEvent => {
+                        gatheredAudioBlobChunks.push(dataEvent.data);
+                    };
 
-                    chatContract = new ethers.Contract(chatContractAddress, chatAbi, signer);
-                    tokenContract = new ethers.Contract(sinuTokenAddress, tokenAbi, signer);
+                    activeMediaRecorderInstance.onstop = () => {
+                        const compiledAudioBlob = new Blob(gatheredAudioBlobChunks, { type: 'audio/mp3' });
+                        const audioBlobFileReader = new FileReader();
+                        audioBlobFileReader.onloadend = () => {
+                            dispatchCompiledMessagePayload('voice', '', audioBlobFileReader.result);
+                        };
+                        audioBlobFileReader.readAsDataURL(compiledAudioBlob);
+                        audioMediaStream.getTracks().forEach(trackItem => trackItem.stop());
+                    };
 
-                    const shortAddr = userAddress.substring(0, 6) + "..." + userAddress.substring(38);
+                    activeMediaRecorderInstance.start();
+                    isMicrophoneRecordingRunning = true;
+                    triggerBtn.classList.add('voice-recording-pulse-active');
+                    triggerBtn.innerHTML = `<i class="fa-solid fa-microphone-slash"></i>`;
+                } catch (micError) {
+                    alert("فشل في بدء تسجيل الملاحظة الصوتية: " + micError.message);
+                }
+            } else {
+                if (activeMediaRecorderInstance) activeMediaRecorderInstance.stop();
+                isMicrophoneRecordingRunning = false;
+                triggerBtn.classList.remove('voice-recording-pulse-active');
+                triggerBtn.innerHTML = `<i class="fa-solid fa-microphone-lines"></i>`;
+            }
+        }
+
+        function handleMediaAttachmentSelection(inputNode, mediaTypeClass) {
+            if (inputNode.files && inputNode.files[0]) {
+                const targetFile = inputNode.files[0];
+                
+                if (targetFile.size > 8 * 1024 * 1024) {
+                    inputNode.value = "";
+                    return alert("خطأ في الحجم: أقصى حد مسموح لرفع ملفات الميديا هو 8 ميجابايت فقط لضمان سرعة معالجة قاعدة البيانات!");
+                }
+
+                const uploadFileReader = new FileReader();
+                uploadFileReader.onload = function(eventData) {
+                    const mediaCaptionText = prompt("اكتب تعليقاً أو نصاً مرفقاً مع ملف الميديا (اختياري):") || "";
+                    dispatchCompiledMessagePayload(mediaTypeClass, mediaCaptionText, eventData.target.result);
+                    inputNode.value = ""; 
+                };
+                uploadFileReader.readAsDataURL(targetFile);
+            }
+        }
+
+        function toggleAudioPlaybackInstance(btnControlNode, trackId, audioDataUrl) {
+            let activeAudioObject = btnControlNode.cachedAudioObject;
+            const controlIconNode = btnControlNode.querySelector('i');
+            const timelineProgressFillNode = btnControlNode.parentElement.querySelector('.audio-timeline-progress-fill');
+            const timerLabelNode = btnControlNode.parentElement.querySelector('.audio-timer-label');
+
+            if (!activeAudioObject) {
+                activeAudioObject = new Audio(audioDataUrl);
+                btnControlNode.cachedAudioObject = activeAudioObject;
+
+                activeAudioObject.addEventListener('timeupdate', () => {
+                    const calculationPercentage = (activeAudioObject.currentTime / activeAudioObject.duration) * 100;
+                    if (timelineProgressFillNode) timelineProgressFillNode.style.width = calculationPercentage + "%";
                     
-                    // تحديث العناوين على الكمبيوتر والموبايل
-                    document.getElementById('activeWalletLabel').innerText = shortAddr;
-                    
-                    const mBtn = document.getElementById('mobileWalletBtn');
-                    const mLabel = document.getElementById('mobileWalletLabel');
-                    if(mBtn && mLabel) {
-                        mBtn.style.display = 'none';
-                        mLabel.style.display = 'inline-block';
-                        mLabel.innerText = `👤 ${shortAddr}`;
+                    let computedMinutes = Math.floor(activeAudioObject.currentTime / 60);
+                    let computedSeconds = Math.floor(activeAudioObject.currentTime % 60);
+                    if (computedSeconds < 10) computedSeconds = "0" + computedSeconds;
+                    timerLabelNode.innerText = `${computedMinutes}:${computedSeconds}`;
+                });
+
+                activeAudioObject.addEventListener('ended', () => {
+                    controlIconNode.className = "fa-solid fa-play";
+                    if (timelineProgressFillNode) timelineProgressFillNode.style.width = "0%";
+                });
+            }
+
+            if (activeAudioObject.paused) {
+                activeAudioObject.play();
+                controlIconNode.className = "fa-solid fa-pause";
+            } else {
+                activeAudioObject.pause();
+                controlIconNode.className = "fa-solid fa-play";
+            }
+        }
+
+        function seekAudioPlaybackTimelineTrackPosition(clickEvent, trackBarNode) {
+            const playToggleBtn = trackBarNode.parentElement.querySelector('.audio-control-toggle-btn');
+            const targetAudioObject = playToggleBtn ? playToggleBtn.cachedAudioObject : null;
+            if (!targetAudioObject) return;
+
+            const boundRectangle = trackBarNode.getBoundingClientRect();
+            const relativeClickPositionX = clickEvent.clientX - boundRectangle.left;
+            const percentageRatio = relativeClickPositionX / boundRectangle.width;
+            targetAudioObject.currentTime = percentageRatio * targetAudioObject.duration;
+        }
+
+        /* ==========================================================================
+           15. معالجة الإرسال وخصم الرصيد للرسائل الخاصة (Message Dispatch Delivery)
+           ========================================================================== */
+        function submitActiveMessageFromToolbar() {
+            const inputField = document.getElementById('inputMainPrimaryTextField');
+            const textContent = inputField.value.trim();
+            if (!textContent) return;
+            
+            dispatchCompiledMessagePayload('text', textContent, '');
+            inputField.value = "";
+        }
+
+        async function dispatchCompiledMessagePayload(msgType, primaryContentText, attachedMediaUrlString = '') {
+            if (!myCachedProfileDataRecord) return alert("خطأ برمي: لم يتم الكشف عن جلسة بروفايل صالحة وموثقة!");
+
+            if (isCurrentFeedModeGroup) {
+                // النشر العام المجاني المفتوح والمباشر
+                const publicPushNodeRef = coreDatabaseInstance.ref("global_posts").push();
+                await publicPushNodeRef.set({
+                    senderUid: myCachedProfileDataRecord.uid,
+                    senderName: myCachedProfileDataRecord.username,
+                    senderAvatar: myCachedProfileDataRecord.avatar,
+                    msgType: msgType,
+                    content: primaryContentText,
+                    mediaUrl: attachedMediaUrlString,
+                    timestamp: Date.now()
+                });
+            } else {
+                // المراسلة الخاصة الآمنة المشروطة بخصومات توكن SINU
+                const recipientEmailField = document.getElementById('inputPrivateTargetRecipientEmail');
+                const cleanTargetEmail = recipientEmailField.value.trim().toLowerCase();
+
+                if (!cleanTargetEmail) return alert("خطأ: يرجى كتابة البريد الإلكتروني للمستلم أولاً في الحقل العلوي لتوجيه الرسالة الخاصة!");
+                if (cleanTargetEmail === myCachedProfileDataRecord.email.toLowerCase()) return alert("خطأ: لا يمكنك فتح قنوات محادثة خاصة مع إيميل حسابك الشخصي!");
+
+                let calculatedTransactionCost = rateTextSinuCharge;
+                if (msgType === 'image') calculatedTransactionCost = rateImageSinuCharge;
+                if (msgType === 'video') calculatedTransactionCost = rateVideoSinuCharge;
+                if (msgType === 'voice') calculatedTransactionCost = rateVoiceSinuCharge;
+
+                if (localInAppSinuBalance < calculatedTransactionCost) {
+                    return alert(`فشلت العملية: رصيدك غير كافٍ لإرسال الرسالة الخاصة! تتطلب هذه العملية ${calculatedTransactionCost} SINU. يرجى الشحن وتعبئة الرصيد.`);
+                }
+
+                const allUsersSnapshot = await coreDatabaseInstance.ref("profiles").once('value');
+                let targetUserFoundRecord = null;
+
+                allUsersSnapshot.forEach(userNode => {
+                    const iteratedUserData = userNode.val();
+                    if (iteratedUserData.email && iteratedUserData.email.toLowerCase() === cleanTargetEmail) {
+                        targetUserFoundRecord = iteratedUserData;
                     }
+                });
 
-                    await refreshUserData();
-                    updateHeaderDisplay();
-                } catch (error) {
-                    console.error(error);
-                    alert("فشل ربط البيانات: " + error.message);
+                if (!targetUserFoundRecord) {
+                    return alert("خطأ: البريد الإلكتروني المدخل للمستلم غير مسجل في المنصة! يرجى التأكد من الأحرف بدقة.");
                 }
-            } else {
-                alert("يرجى فتح التطبيق من داخل متصفح محفظة العملات المعتمدة (مثل Trust Wallet أو MetaMask)!");
-            }
-        }
 
-        async function refreshUserData() {
-            if (!chatContract || !userAddress) return;
-            try {
-                const rawBalance = await chatContract.getInAppBalance(userAddress);
-                inAppBalance = parseInt(rawBalance.toString());
+                // تنفيذ عملية الخصم الفوري للرصيد الافتراضي لحساب المرسل في قاعدة البيانات
+                let subtractionComputedResult = localInAppSinuBalance - calculatedTransactionCost;
+                await coreDatabaseInstance.ref(`profiles/${myCachedProfileDataRecord.uid}`).update({ balance: subtractionComputedResult });
 
-                const cText = await chatContract.costText();
-                const cImage = await chatContract.costImage();
-                
-                priceText = parseFloat(ethers.utils.formatEther(cText));
-                priceImage = parseFloat(ethers.utils.formatEther(cImage));
-            } catch (err) {
-                console.error("خطأ قراءة أسعار الرصيد: ", err);
-            }
-            updateHeaderDisplay();
-        }
-
-        function listenToPublicMessages() {
-            document.getElementById('messagesArea').innerHTML = ""; 
-            db.ref("public_messages").off();
-            
-            db.ref("public_messages").on("child_added", (snapshot) => {
-                const data = snapshot.val();
-                const isMe = userAddress ? data.sender.toLowerCase() === userAddress.toLowerCase() : false;
-                displayMessageInUI(data.type, data.content, isMe, data.sender, true, snapshot.key);
-            });
-
-            db.ref("public_messages").on("child_changed", (snapshot) => {
-                const data = snapshot.val();
-                const isMe = userAddress ? data.sender.toLowerCase() === userAddress.toLowerCase() : false;
-                displayMessageInUI(data.type, data.content, isMe, data.sender, true, snapshot.key);
-            });
-
-            db.ref("public_messages").on("child_removed", (snapshot) => {
-                displayMessageInUI(null, null, false, "", true, snapshot.key);
-            });
-        }
-
-        async function handleUIDeposit() {
-            if (!tokenContract || !chatContract) {
-                return alert("⚠️ يرجى الضغط على زر '🔗 ربط المحفظة' الموجود أول شريط الأزرار العلوي قبل الشحن!");
-            }
-
-            const amountInput = document.getElementById('depositAmount');
-            const val = amountInput.value.trim();
-            if(!val || parseFloat(val) <= 0) return alert("يرجى كتابة كمية شحن صالحة!");
-            
-            try {
-                const amountWei = ethers.utils.parseEther(val);
-                const approveTx = await tokenContract.approve(chatContractAddress, amountWei);
-                await approveTx.wait();
-                
-                const depositTx = await chatContract.depositSinu(amountWei);
-                await depositTx.wait();
-                
-                alert("تم شحن الرصيد بنجاح! 🎉");
-                await refreshUserData();
-            } catch (error) {
-                alert("فشلت عملية الإيداع: " + error.message);
-            }
-        }
-
-        function switchChatMode(mode) {
-            isGroupChat = (mode === 'group');
-            const recipientRow = document.getElementById('recipientRow');
-            document.getElementById('messagesArea').innerHTML = ""; 
-            
-            if (isGroupChat) {
-                document.getElementById('tabGroup').classList.add('active');
-                document.getElementById('tabPrivate').classList.remove('active');
-                recipientRow.style.display = 'none'; 
-                listenToPublicMessages(); 
-            } else {
-                document.getElementById('tabGroup').classList.remove('active');
-                document.getElementById('tabPrivate').classList.add('active');
-                recipientRow.style.display = 'flex'; 
-                db.ref("public_messages").off(); 
-                displayMessageInUI(1, "أنت الآن في قسم الرسائل الخاصة الآمنة، سيتم الخصم من رصيدك في العقد تلقائياً عند الإرسال.", false, "نظام الحماية", false);
-            }
-            updateHeaderDisplay();
-        }
-
-        function updateHeaderDisplay() {
-            const header = document.getElementById('chatHeader');
-            if (!header) return;
-            
-            if (isGroupChat) {
-                header.innerHTML = `المنشورات العامة 🌐 | <span style="color: #00ff88; font-weight: bold;">تعديل ومسح منشوراتك متاح</span> | رصيدك: ${inAppBalance} SINU`;
-            } else {
-                header.innerHTML = `المراسلة الخاصة 🔒 | رصيدك: <span style="color:#00ff88; font-weight:bold;">${inAppBalance} SINU</span><br>
-                <small style="color:#f3ba2f; font-weight: bold;">نص ${priceText} | صورة ${priceImage} SINU</small>`;
-            }
-        }
-
-        function handleLocalFileChange(inputElement, serviceType) {
-            if (!isGroupChat) {
-                const recipientInput = document.getElementById('recipientAddress');
-                const recipient = recipientInput.value.trim();
-                if (recipient === "" || !recipient.startsWith("0x") || recipient.length !== 42) {
-                    inputElement.value = "";
-                    return alert("يرجى كتابة عنوان محفظة المستلم أولاً!");
-                }
-            }
-
-            const file = inputElement.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                sendMessage(serviceType, e.target.result);
-                inputElement.value = ""; 
-            };
-            reader.readAsDataURL(file);
-        }
-
-
-        async function sendMessage(serviceType = 1, mediaData = "") { 
-            if (!chatContract) return alert("يرجى ربط محفظتك أولاً عبر زر '🔗 ربط المحفظة' في الأعلى.");
-            
-            const input = document.getElementById('messageInput');
-            const recipientInput = document.getElementById('recipientAddress');
-            let text = serviceType === 1 ? input.value.trim() : mediaData;
-
-            if (text === "") return;
-
-            if (isGroupChat) {
-                db.ref("public_messages").push({
-                    sender: userAddress,
-                    content: text,
-                    type: serviceType,
+                // كتابة وضخ تذكرة الفاتورة في قاعدة البيانات للتوثيق
+                const invoicePushRef = coreDatabaseInstance.ref(`profiles/${myCachedProfileDataRecord.uid}/billing_history`).push();
+                await invoicePushRef.set({
+                    type: "خصم دردشة خاصة",
+                    amount: calculatedTransactionCost,
+                    target: cleanTargetEmail,
                     timestamp: Date.now()
                 });
-                if (serviceType === 1) input.value = "";
-            } else {
-                const recipient = recipientInput.value.trim();
-                if (recipient === "" || !recipient.startsWith("0x") || recipient.length !== 42) {
-                    return alert("يرجى إدخال عنوان محفظة مستلم صحيح!");
-                }
 
-                let currentCost = parseFloat(priceText);
-                if (serviceType === 2) currentCost = parseFloat(priceImage);
-
-                if (inAppBalance < currentCost) {
-                    alert(`رصيدك غير كافٍ! تحتاج إلى ${currentCost} SINU.`);
-                    return;
-                }
-
-                        try {
-            // 1. جلب رصيد المستخدم المشحون داخل التطبيق من الـ Firebase
-            const userRef = db.ref(`users/${userAddress}`);
-            const snapshot = await userRef.once('value');
-            let currentBalance = snapshot.val()?.balance || 0;
-
-            if (currentBalance < currentCost) {
-                alert(`رصيدك المشحون غير كافٍ! تحتاج إلى ${currentCost} SINU. يرجى شحن رصيدك من القائمة الجانبية.`);
-                return;
-            }
-
-            // 2. الخصم داخلياً من قاعدة البيانات فوراً (مجاناً وبدون محفظة!)
-            currentBalance -= currentCost;
-            await userRef.update({ balance: currentBalance });
-
-            // 3. حفظ الرسالة الخاصة في Firebase لتظهر فوراً
-            const recipient = recipientInput.value.trim();
-            await db.ref("private_messages").push({
-                sender: userAddress,
-                recipient: recipient,
-                content: text,
-                type: serviceType,
-                timestamp: Date.now()
-            });
-
-            // 4. تحديث الرصيد المعروض في الواجهة
-            inAppBalance = currentBalance;
-            if (typeof updateHeaderDisplay === "function") {
-                updateHeaderDisplay();
-            }
-
-            displayMessageInUI(serviceType, text, true, userAddress, false);
-            if (serviceType === 1) input.value = "";
-
-        } catch (e) {
-            console.error("خطأ أثناء الإرسال:", e);
-            alert("حدث خطأ أثناء إرسال الرسالة: " + e.message);
-        }
-
-
-
-            }
-        }
-
-        function displayMessageInUI(serviceType, content, isSent, senderAddress, isPublicMsg, messageId = null) {
-            const area = document.getElementById('messagesArea');
-            if (!area) return;
-            
-            if (!content && messageId) {
-                const existingMsg = document.getElementById(`msg-${messageId}`);
-                if (existingMsg) existingMsg.remove();
-                return;
-            }
-
-            let msgDiv = document.getElementById(`msg-${messageId}`);
-            let isEdit = false;
-            
-            if (msgDiv) {
-                msgDiv.innerHTML = ""; 
-                isEdit = true;
-            } else {
-                msgDiv = document.createElement('div');
-                if (messageId) msgDiv.id = `msg-${messageId}`;
-            }
-
-            msgDiv.className = isSent ? 'message sent' : 'message received';
-            msgDiv.style.borderLeft = isPublicMsg ? "4px solid #00ff88" : "4px solid #f3ba2f";
-            
-            let shortSender = senderAddress;
-            if(senderAddress && senderAddress.startsWith("0x")) {
-                shortSender = senderAddress.substring(0, 6) + "..." + senderAddress.substring(38);
-            }
-            
-            const headerSpan = document.createElement('div');
-            headerSpan.style.cssText = "display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px; gap: 10px;";
-            
-            const titleSpan = document.createElement('small');
-            titleSpan.style.cssText = "color:#aaa; font-weight:bold; font-size:0.75rem;";
-            titleSpan.innerText = isPublicMsg ? `🌐 منشور عام من: ${shortSender}` : `🔒 رسالة خاصة`;
-            headerSpan.appendChild(titleSpan);
-
-            if (isPublicMsg && isSent && messageId && serviceType === 1) {
-                const controlsDiv = document.createElement('div');
-                controlsDiv.style.cssText = "display: flex; gap: 5px;";
-
-                const editBtn = document.createElement('button');
-                editBtn.innerText = "✏️";
-                editBtn.style.cssText = "background: none; border: none; cursor: pointer; font-size: 0.8rem;";
-                editBtn.onclick = () => editPublicMessage(messageId, content);
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.innerText = "❌";
-                deleteBtn.style.cssText = "background: none; border: none; cursor: pointer; font-size: 0.8rem;";
-                deleteBtn.onclick = () => deletePublicMessage(messageId);
-
-                controlsDiv.appendChild(editBtn);
-                controlsDiv.appendChild(deleteBtn);
-                headerSpan.appendChild(controlsDiv);
-            }
-
-            msgDiv.appendChild(headerSpan);
-
-            if (serviceType === 1) {
-                const textContainer = document.createElement('span');
-                textContainer.innerText = content;
-                msgDiv.appendChild(textContainer);
-            } else if (serviceType === 2) {
-                const img = document.createElement('img');
-                img.src = content;
-                img.style.cssText = "max-width:100%; border-radius:8px; margin-top:5px;";
-                msgDiv.appendChild(img);
-            }
-
-            if (!isEdit) {
-                area.appendChild(msgDiv);
-            }
-            area.scrollTop = area.scrollHeight;
-        }
-
-        async function editPublicMessage(messageId, oldContent) {
-            const newContent = prompt("قم بتعديل منشورك:", oldContent);
-            if (!newContent || newContent.trim() === "" || newContent.trim() === oldContent) return;
-
-            try {
-                await db.ref(`public_messages/${messageId}`).update({
-                    content: newContent.trim(),
+                // رفع وتخزين نص وميديا الرسالة الخاصة في عقد قنوات المحادثة الخاصة
+                const privatePushNodeRef = coreDatabaseInstance.ref("private_chats").push();
+                await privatePushNodeRef.set({
+                    senderUid: myCachedProfileDataRecord.uid,
+                    senderName: myCachedProfileDataRecord.username,
+                    senderAvatar: myCachedProfileDataRecord.avatar,
+                    targetUid: targetUserFoundRecord.uid,
+                    msgType: msgType,
+                    content: primaryContentText,
+                    mediaUrl: attachedMediaUrlString,
                     timestamp: Date.now()
                 });
-                alert("تم تعديل المنشور بنجاح! ✨");
-            } catch (err) {
-                alert("فشل التعديل: خطأ في الصلاحيات.");
             }
         }
-        // ... نهاية دالتك القديمة السابقة في الملف ...
 
-        // ==========================================
-// 🚀 1. دالة تحديث واجهة الرصيد والملف الشخصي
-// ==========================================
-async function updateHeaderDisplay() {
-    try {
-        let activeUserAddress = typeof userAddress !== 'undefined' ? userAddress : null;
-        if (!activeUserAddress && typeof window.ethereum !== 'undefined') {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const accounts = await provider.listAccounts();
-            if (accounts.length > 0) activeUserAddress = accounts[0];
+        async function triggerEditActionForGlobalPostText(postId, existingText) {
+            const promptInputResult = prompt("تعديل نص منشورك العام النشط:", existingText);
+            if (!promptInputResult || promptInputResult.trim() === "" || promptInputResult.trim() === existingText) return;
+
+            try {
+                await coreDatabaseInstance.ref(`global_posts/${postId}`).update({
+                    content: promptInputResult.trim(),
+                    timestamp: Date.now()
+                });
+            } catch (err) {
+                alert("فشلت عملية التعديل: انتهت صلاحية الجلسة أو لا تملك الإذن.");
+            }
         }
 
-        if (!activeUserAddress) return;
-
-        // قراءة الرصيد من Firebase بناءً على هوية الحساب
-        const snapshot = await db.ref(`users/${activeUserAddress.toLowerCase()}/balance`).once('value');
-        const currentBalance = snapshot.val() || 0;
-
-        // تحديث نص الرصيد الأخضر في الواجهة
-        const balanceDisplay = document.getElementById("balanceDisplay") || document.querySelector(".Mrasla-display"); 
-        if (balanceDisplay) {
-            balanceDisplay.innerHTML = `رصيدك 🔒: <span style="color: #00ffcc;">SINU ${currentBalance}</span>`;
-        }
-    } catch (err) {
-        console.log("تنبيه الواجهة:", err.message);
-    }
-}
-
-// ==========================================
-// 🚀 2. دالة تشغيل الشحن عند ضغط الزر الأخضر
-// ==========================================
-async function handleUIDeposit() {
-    try {
-        const amountInput = document.getElementById("depositAmount") || document.querySelector("input[type='number']");
-        if (!amountInput) {
-            alert("خطأ: لم يتم العثور على حقل إدخال الكمية في الـ HTML");
-            return;
-        }
-        
-        const amount = amountInput.value.trim();
-        if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-            alert("يرجى إدخال كمية صحيحة من توكنز SINU للشحن.");
-            return;
+        async function triggerDeleteActionForGlobalPost(postId) {
+            if (!confirm("هل أنت متأكد تماماً وبشكل مطلق من حذف هذا المنشور نهائياً من قاعدة البيانات العامة؟")) return;
+            try {
+                await coreDatabaseInstance.ref(`global_posts/${postId}`).remove();
+            } catch (err) {
+                alert("فشلت عملية حذف المنشور.");
+            }
         }
 
-        await depositFunds(parseFloat(amount));
-        amountInput.value = "";
-    } catch (err) {
-        alert("خطأ في الواجهة: " + err.message);
-    }
-}
+        /* ==========================================================================
+           16. محرك وأرشيف فواتير المعاملات التاريخية (Billing History Ledger)
+           ========================================================================== */
+        function renderBillingTransactionsHistoryRecords() {
+            if (!myCachedProfileDataRecord) return;
+            const historyContainer = document.getElementById('uiTxHistoryRecordsList');
+            if (!historyContainer) return;
 
-// ==========================================
-// 🚀 3. دالة الشحن الأساسية الخالية من أخطاء الـ Checksum
-// ==========================================
-async function depositFunds(amountToDeposit) {
-    try {
-        let activeContract = typeof chatContract !== 'undefined' ? chatContract : (typeof contract !== 'undefined' ? contract : null);
-        if (!activeContract) {
-            return alert("يرجى ربط المحفظة أولاً للتأكد من الاتصال بالعقد الذكي.");
-        }
-
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        
-        // 🛡️ حل جذري لـ bad address checksum: تمرير العنوان بأحرف صغيرة واستخدام نظام تحويل آمن داخل المكتبة
-        const rawTokenAddress = "0x56bB247c424958948B63de291A0C7f45dB651B76";
-        const sinuTokenAddress = ethers.utils.getAddress(rawTokenAddress); 
-        
-        const erc20ABI = [
-            "function allowance(address owner, address spender) view returns (uint256)",
-            "function approve(address spender, uint256 amount) returns (bool)"
-        ];
-        
-        const sinuContract = new ethers.Contract(sinuTokenAddress, erc20ABI, signer);
-        const amountWei = ethers.utils.parseUnits(amountToDeposit.toString(), 18);
-
-        const activeUserAddress = await signer.getAddress();
-
-        // فحص الصلاحية الـ Allowance
-        const allowance = await sinuContract.allowance(activeUserAddress, activeContract.address);
-        if (allowance.lt(amountWei)) {
-            alert("يرجى الموافقة على صلاحية سحب التوكن في محفظتك أولاً...");
-            const approveTx = await sinuContract.approve(activeContract.address, ethers.constants.MaxUint256);
-            await approveTx.wait();
-        }
-
-        alert("يرجى تأكيد معاملة الشحن في المحفظة ودفع الغاز...");
-        const tx = await activeContract.depositSinu(amountWei);
-        await tx.wait();
-
-        // 📝 تحديث الرصيد في Firebase بربطه بـ العنوان الصغير الموحد تمهيداً لنظام الحسابات
-        if (typeof db !== 'undefined') {
-            const userKey = activeUserAddress.toLowerCase();
-            const userRef = db.ref(`users/${userKey}`);
-            const snapshot = await userRef.once('value');
-            let currentBalance = snapshot.val()?.balance || 0;
-            
-            currentBalance += parseFloat(amountToDeposit);
-            await userRef.update({ 
-                balance: currentBalance,
-                lastUpdated: new Date().getTime()
+            coreDatabaseInstance.ref(`profiles/${myCachedProfileDataRecord.uid}/billing_history`).limitToLast(5).on('value', snapshot => {
+                historyContainer.innerHTML = "";
+                if (snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        const tx = child.val();
+                        const item = document.createElement('div');
+                        item.className = "tx-history-item";
+                        item.innerHTML = `
+                            <span style="color:var(--text-muted); font-size:0.7rem;">${tx.type}</span>
+                            <span style="font-weight:bold; color:${tx.amount > 0 ? 'var(--success)' : 'var(--danger)'}">
+                                ${tx.amount > 0 ? '+' : ''}${tx.amount} SINU
+                            </span>
+                        `;
+                        historyContainer.appendChild(item);
+                    });
+                } else {
+                    historyContainer.innerHTML = `<div class="tx-history-item" style="color:var(--text-muted); justify-content: center;">لا توجد معاملات سابقة</div>`;
+                }
             });
-            
-            alert(`🎉 تم شحن حسابك بنجاح! رصيدك الحالي في التطبيق: SINU ${currentBalance}`);
-            updateHeaderDisplay();
         }
 
-    } catch (e) {
-        console.error(e);
-        alert("فشلت عملية الشحن:\n" + (e.message || "تأكد من اختيار شبكة Base في محفظتك"));
-    }
-}
+        /* ==========================================================================
+           17. محرك البلوكشين والـ Web3 لشحن توكن SINU عبر شبكة Base (Web3 Engine)
+           ========================================================================== */
+        async function triggerWeb3BlockchainDepositTx() {
+            const inputFieldAmount = document.getElementById('inputWeb3SinuDepositAmount');
+            if (!inputFieldAmount) return;
 
+            const cleanAmountStr = inputFieldAmount.value.trim();
+            if (!cleanAmountStr || isNaN(cleanAmountStr) || parseFloat(cleanAmountStr) <= 0) {
+                return alert("خطأ: يرجى إدخال كمية رقمية صحيحة تزيد عن الصفر لشحن توكن SINU الحقيقي!");
+            }
 
-</script>
+            if (typeof window.ethereum === 'undefined') {
+                return alert("تنبيه ربط المحفظة: يرجى فتح رابط منصتك وتطبيقك الاجتماعي من داخل متصفح محفظة مشفرة حقيقية تدعم عقود الويب 3 الذكية مثل MetaMask أو Trust Wallet أو Binance Web3 Wallet لتأكيد معاملة غاز شبكة Base!");
+            }
 
+            try {
+                const targetTokensAmountFloat = parseFloat(cleanAmountStr);
+                
+                // تأسيس قنوات ربط الـ Web3 Provider والـ Signer مع عقود المطور
+                web3EthersProvider = new ethers.providers.Web3Provider(window.ethereum);
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                web3EthersSigner = web3EthersProvider.getSigner();
 
+                const validatedChecksumTokenAddress = ethers.utils.getAddress(addressContractSinuToken);
+                contractInstanceChat = new ethers.Contract(addressContractChatGateway, abiChatGatewaySpecs, web3EthersSigner);
+                contractInstanceToken = new ethers.Contract(validatedChecksumTokenAddress, abiSinuTokenSpecs, web3EthersSigner);
+
+                const computedWalletAddress = await web3EthersSigner.getAddress();
+                document.getElementById('uiConnectedWalletAddressTag').innerText = computedWalletAddress.substring(0,6) + "..." + computedWalletAddress.substring(38);
+
+                const tokenDecimalsPrecision = 18;
+                const calculatedWeiUnitsAmount = ethers.utils.parseUnits(targetTokensAmountFloat.toString(), tokenDecimalsPrecision);
+
+                // أ- التحقق البرمجي التلقائي وعقد الموافقة Allowance لضمان إيداع سليم
+                alert("جاري التحقق الفوري من صلاحيات الـ Allowance لتوكن SINU على العقد الذكي لبوابة الشات...");
+                const activeCurrentAllowance = await contractInstanceToken.allowance(computedWalletAddress, addressContractChatGateway);
+
+                if (activeCurrentAllowance.lt(calculatedWeiUnitsAmount)) {
+                    alert("يرجى إعطاء الإذن والموافقة للعقد الذكي لسحب كمية توكن SINU المحددة من محفظتك، أكد معاملة الـ Approve الآن...");
+                    const approveTxReceipt = await contractInstanceToken.approve(addressContractChatGateway, ethers.constants.MaxUint256);
+                    await approveTxReceipt.wait();
+                }
+
+                // ب- استدعاء دالة الإيداع الرسمية من العقد الذكي ودفع غاز شبكة Base
+                alert("يرجى تأكيد الخطوة النهائية ودفع رسوم الغاز البسيطة لشبكة Base لإتمام شحن حسابك بالمنصة...");
+                const depositTxReceipt = await contractInstanceChat.depositSinu(calculatedWeiUnitsAmount);
+                await depositTxReceipt.wait();
+
+                // ت- شحن حساب المستخدم بالإيميل داخل قاعدة البيانات فور نجاح تأكيد معاملات البلوكشين
+                if (myCachedProfileDataRecord) {
+                    let updatedSinuInAppBalance = localInAppSinuBalance + targetTokensAmountFloat;
+                    
+                    // تحديث رصيد الحساب الرئيسي للملف الشخصي
+                    await coreDatabaseInstance.ref(`profiles/${myCachedProfileDataRecord.uid}`).update({
+                        balance: updatedSinuInAppBalance,
+                        lastConnectedWalletAddress: computedWalletAddress,
+                        lastDepositTxTimestamp: Date.now()
+                    });
+
+                    // تدوين الفاتورة الإيجابية في سجل تاريخ المعاملات المشحونة للبلينغ
+                    const depositHistoryRef = coreDatabaseInstance.ref(`profiles/${myCachedProfileDataRecord.uid}/billing_history`).push();
+                    await depositHistoryRef.set({
+                        type: "شحن رصيد Web3",
+                        amount: targetTokensAmountFloat,
+                        target: computedWalletAddress.substring(0,8) + "...",
+                        timestamp: Date.now()
+                    });
+
+                    alert(`🎉 تهانينا المطلقة! تمت المعاملة بنجاح على البلوكشين وأضيفت ${targetTokensAmountFloat} SINU حقيقية إلى رصيد حسابك بالإيميل.`);
+                }
+
+            } catch (web3Error) {
+                console.error(web3Error);
+                alert("فشلت معاملة الـ Web3 اللامركزية أو تم إلغاؤها من قبل المستخدم: " + (web3Error.message || "تأكد من ضبط غاز شبكة Base."));
+            }
+        }
+
+        /* ==========================================================================
+           18. منطق الألعاب، والمسابقات، وتوقعات المباريات (Gamification Framework Logic)
+           ========================================================================== */
+        async function executeAppGameAction(gameTitleKey) {
+            if (!myCachedProfileDataRecord) return;
+            
+            const gameCost = 30;
+            if (localInAppSinuBalance < gameCost) {
+                return alert(`رصيدك غير كافٍ للمشاركة في مسابقات ${gameTitleKey}! تحتاج إلى 30 SINU على الأقل.`);
+            }
+
+            if (gameTitleKey === 'Match Prediction') {
+                const userVotePrediction = prompt("توقع فائز مباراة اليوم لدخول السحب: اكتب (الأرجنتين) أو (فرنسا):");
+                if (!userVotePrediction || (userVotePrediction !== 'الأرجنتين' && userVotePrediction !== 'فرنسا')) {
+                    return alert("يرجى كتابة اسم الفريق بشكل صحيح للمشاركة في التوقعات الرياضية!");
+                }
+
+                // خصم الرصيد وتدوين المعاملة للعبة التوقعات
+                let cleanBalance = localInAppSinuBalance - gameCost;
+                await coreDatabaseInstance.ref(`profiles/${myCachedProfileDataRecord.uid}`).update({ balance: cleanBalance });
+
+                const gameTxRef = coreDatabaseInstance.ref(`profiles/${myCachedProfileDataRecord.uid}/billing_history`).push();
+                await gameTxRef.set({
+                    type: "توقع مباراة رياضة",
+                    amount: -gameCost,
+                    target: userVotePrediction,
+                    timestamp: Date.now()
+                });
+
+                alert(`🎉 تم حفظ توقعك لـ (${userVotePrediction}) بنجاح وخصم 30 SINU! سيتم توزيع الجوائز تلقائياً فور انتهاء المباراة الحقيقية.`);
+            } else {
+                alert(`ساحة وعجلة حظ ${gameTitleKey} يتم إعداد اللوحة الرسومية الخاصة بها بالكامل لدعم الرهانات الفورية التلقائية لمجتمع SINU!`);
+            }
+        }
     </script>
 </body>
 </html>
