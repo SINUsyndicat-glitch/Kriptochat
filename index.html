@@ -267,23 +267,32 @@ input:focus, textarea:focus {
         display: none;
     }
 }
-        /* 📱 تحسين تكتيكي لعرض القائمة الجانبية والروابط على الهواتف */
-@media (max-width: 768px) {
-    /* جعل الحاوية الرئيسية ترتب العناصر عمودياً بدلاً من أفقياً */
-    #uiMainAppDashboard, .main-dashboard-container {
+        
+/* 📱 التعديل الجذري لإجبار القائمة الجانبية وروابط Vercel على الظهور في الهاتف */
+@media (max-width: 991px) {
+    /* 1. إجبار الحاوية الرئيسية للمنصة على عرض العناصر عمودياً */
+    div[style*="display: flex"], 
+    .main-dashboard-container, 
+    #uiMainAppDashboard {
         display: flex !important;
-        flex-direction: column-reverse !important; /* وضع الروابط والشحن أسفل الشات لسهولة الاستخدام */
-        padding: 10px !important;
+        flex-direction: column-reverse !important; /* يضع الروابط والشحن أسفل الشات لسهولة الاستخدام */
     }
 
-    /* تعديل أبعاد القائمة الجانبية لتأخذ عرض الشاشة بالكامل */
-    .sidebar-panel, #sidebarMenuWrapper, [style*="width: 300px"], [style*="width:25%"] {
+    /* 2. إلغاء أي إخفاء تلقائي (display: none) مبرمج للقائمة الجانبية في الهواتف */
+    div[style*="width: 300px"], 
+    div[style*="width: 25%"],
+    .sidebar-panel, 
+    #sidebarMenuWrapper {
+        display: block !important; /* إجبار على الظهور */
+        visibility: visible !important;
         width: 100% !important;
         max-width: 100% !important;
-        margin-top: 20px !important;
-        background: rgba(18, 18, 18, 0.95) !important;
-        border-radius: 12px !important;
+        margin-top: 25px !important;
+        margin-bottom: 25px !important;
         padding: 15px !important;
+        background: rgba(20, 20, 20, 0.95) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
         box-sizing: border-box !important;
     }
 }
