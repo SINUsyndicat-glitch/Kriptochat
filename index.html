@@ -267,6 +267,27 @@ input:focus, textarea:focus {
         display: none;
     }
 }
+        /* 📱 تحسين تكتيكي لعرض القائمة الجانبية والروابط على الهواتف */
+@media (max-width: 768px) {
+    /* جعل الحاوية الرئيسية ترتب العناصر عمودياً بدلاً من أفقياً */
+    #uiMainAppDashboard, .main-dashboard-container {
+        display: flex !important;
+        flex-direction: column-reverse !important; /* وضع الروابط والشحن أسفل الشات لسهولة الاستخدام */
+        padding: 10px !important;
+    }
+
+    /* تعديل أبعاد القائمة الجانبية لتأخذ عرض الشاشة بالكامل */
+    .sidebar-panel, #sidebarMenuWrapper, [style*="width: 300px"], [style*="width:25%"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-top: 20px !important;
+        background: rgba(18, 18, 18, 0.95) !important;
+        border-radius: 12px !important;
+        padding: 15px !important;
+        box-sizing: border-box !important;
+    }
+}
+
 
         
     </style>
